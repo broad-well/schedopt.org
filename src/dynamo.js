@@ -79,7 +79,7 @@ export class Database {
             { AttributeName: "SectionType", AttributeType: "S" },
             { AttributeName: "CreditHours", AttributeType: "N" },
             { AttributeName: "ClassNumber", AttributeType: "N" },
-            { AttributeName: "Meetings", AttributeType: "L" },
+            { AttributeName: "Meetings", AttributeType: "B" },
           ],
           KeySchema: [
             { AttributeName: "CourseCode", KeyType: "HASH" },
@@ -96,7 +96,7 @@ export class Database {
         new CreateTableCommand({
           AttributeDefinitions: [
             { AttributeName: "CourseCode", AttributeType: "S" },
-            { AttributeName: "Clusters", AttributeType: "L" },
+            { AttributeName: "Clusters", AttributeType: "B" },
           ],
           KeySchema: [
             { AttributeName: "CourseCode", KeyType: "HASH" },
