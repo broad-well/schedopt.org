@@ -1,0 +1,351 @@
+{
+    "getSOCSectionsResponse": {
+        "@schemaLocation": "http://mais.he.umich.edu/schemas/getSOCSectionsResponse.v1 http://csprodib.dsc.umich.edu/PSIGW/PeopleSoftServiceListeningConnector/getSOCSectionsResponse.v1.xsd",
+        "Section": [
+            {
+                "SectionNumber": "001",
+                "SectionType": "LEC",
+                "SectionTypeDescr": "Lecture",
+                "SessionDescr": "Regular",
+                "InstructionMode": "In Person",
+                "ClassTopic": null,
+                "EnrollmentStatus": "Closed",
+                "EnrollmentTotal": 200,
+                "EnrollmentCapacity": 200,
+                "AvailableSeats": 0,
+                "WaitTotal": 1,
+                "WaitCapacity": 0,
+                "CreditHours": 4,
+                "CombinedSectionID": "C",
+                "ClassNumber": 30088,
+                "AutoEnrollSection1": null,
+                "AutoEnrollSection2": null,
+                "AssociatedClass": 1,
+                "EnrollmentClassType": "N",
+                "Meeting": {
+                    "MeetingNumber": 1,
+                    "Days": "MoWe",
+                    "Times": "1:00PM - 2:00PM",
+                    "ClassMtgTopic": "TBA",
+                    "Instructors": "Chaney,Andrea"
+                },
+                "ClassInstructors": {
+                    "InstrUniqname": "CHANEYA",
+                    "InstrName": "Chaney,Andrea"
+                }
+            },
+            {
+                "SectionNumber": "002",
+                "SectionType": "LEC",
+                "SectionTypeDescr": "Lecture",
+                "SessionDescr": "Regular",
+                "InstructionMode": "In Person",
+                "ClassTopic": null,
+                "EnrollmentStatus": "Open",
+                "EnrollmentTotal": 146,
+                "EnrollmentCapacity": 200,
+                "AvailableSeats": 54,
+                "WaitTotal": 4,
+                "WaitCapacity": 0,
+                "CreditHours": 4,
+                "CombinedSectionID": "C",
+                "ClassNumber": 30089,
+                "AutoEnrollSection1": null,
+                "AutoEnrollSection2": null,
+                "AssociatedClass": 1,
+                "EnrollmentClassType": "N",
+                "Meeting": {
+                    "MeetingNumber": 1,
+                    "Days": "MoWe",
+                    "Times": "2:00PM - 3:00PM",
+                    "ClassMtgTopic": "TBA",
+                    "Instructors": "Chaney,Andrea"
+                },
+                "ClassInstructors": {
+                    "InstrUniqname": "CHANEYA",
+                    "InstrName": "Chaney,Andrea"
+                }
+            },
+            {
+                "SectionNumber": "003",
+                "SectionType": "DIS",
+                "SectionTypeDescr": "Discussion",
+                "SessionDescr": "Regular",
+                "InstructionMode": "In Person",
+                "ClassTopic": null,
+                "EnrollmentStatus": "Wait List",
+                "EnrollmentTotal": 80,
+                "EnrollmentCapacity": 80,
+                "AvailableSeats": 0,
+                "WaitTotal": 2,
+                "WaitCapacity": 99,
+                "CreditHours": 4,
+                "CombinedSectionID": "C",
+                "ClassNumber": 30090,
+                "AutoEnrollSection1": "021",
+                "AutoEnrollSection2": null,
+                "AssociatedClass": 1,
+                "EnrollmentClassType": "E",
+                "Meeting": {
+                    "MeetingNumber": 1,
+                    "Days": "TuTh",
+                    "Times": "10:00AM - 11:00AM",
+                    "ClassMtgTopic": "TBA",
+                    "Instructors": "Chaney,Andrea"
+                },
+                "ClassInstructors": {
+                    "InstrUniqname": "CHANEYA",
+                    "InstrName": "Chaney,Andrea"
+                }
+            },
+            {
+                "SectionNumber": "004",
+                "SectionType": "DIS",
+                "SectionTypeDescr": "Discussion",
+                "SessionDescr": "Regular",
+                "InstructionMode": "In Person",
+                "ClassTopic": null,
+                "EnrollmentStatus": "Wait List",
+                "EnrollmentTotal": 80,
+                "EnrollmentCapacity": 80,
+                "AvailableSeats": 0,
+                "WaitTotal": 3,
+                "WaitCapacity": 99,
+                "CreditHours": 4,
+                "CombinedSectionID": "C",
+                "ClassNumber": 30091,
+                "AutoEnrollSection1": "021",
+                "AutoEnrollSection2": null,
+                "AssociatedClass": 1,
+                "EnrollmentClassType": "E",
+                "Meeting": {
+                    "MeetingNumber": 1,
+                    "Days": "TuTh",
+                    "Times": "1:00PM - 2:00PM",
+                    "ClassMtgTopic": "TBA",
+                    "Instructors": "Lubensky,David K"
+                },
+                "ClassInstructors": {
+                    "InstrUniqname": "DKLUBEN",
+                    "InstrName": "Lubensky,David K"
+                }
+            },
+            {
+                "SectionNumber": "005",
+                "SectionType": "DIS",
+                "SectionTypeDescr": "Discussion",
+                "SessionDescr": "Regular",
+                "InstructionMode": "In Person",
+                "ClassTopic": null,
+                "EnrollmentStatus": "Open",
+                "EnrollmentTotal": 55,
+                "EnrollmentCapacity": 80,
+                "AvailableSeats": 25,
+                "WaitTotal": 0,
+                "WaitCapacity": 99,
+                "CreditHours": 4,
+                "CombinedSectionID": "C",
+                "ClassNumber": 30092,
+                "AutoEnrollSection1": "021",
+                "AutoEnrollSection2": null,
+                "AssociatedClass": 1,
+                "EnrollmentClassType": "E",
+                "Meeting": {
+                    "MeetingNumber": 1,
+                    "Days": "TuTh",
+                    "Times": "2:00PM - 3:00PM",
+                    "ClassMtgTopic": "TBA",
+                    "Instructors": "Lubensky,David K"
+                },
+                "ClassInstructors": {
+                    "InstrUniqname": "DKLUBEN",
+                    "InstrName": "Lubensky,David K"
+                }
+            },
+            {
+                "SectionNumber": "006",
+                "SectionType": "DIS",
+                "SectionTypeDescr": "Discussion",
+                "SessionDescr": "Regular",
+                "InstructionMode": "In Person",
+                "ClassTopic": null,
+                "EnrollmentStatus": "Open",
+                "EnrollmentTotal": 75,
+                "EnrollmentCapacity": 80,
+                "AvailableSeats": 5,
+                "WaitTotal": 0,
+                "WaitCapacity": 99,
+                "CreditHours": 4,
+                "CombinedSectionID": "C",
+                "ClassNumber": 30093,
+                "AutoEnrollSection1": "021",
+                "AutoEnrollSection2": null,
+                "AssociatedClass": 1,
+                "EnrollmentClassType": "E",
+                "Meeting": {
+                    "MeetingNumber": 1,
+                    "Days": "TuTh",
+                    "Times": "3:00PM - 4:00PM",
+                    "ClassMtgTopic": "TBA",
+                    "Instructors": "Zochowski,Michal R"
+                },
+                "ClassInstructors": {
+                    "InstrUniqname": "MICHALZ",
+                    "InstrName": "Zochowski,Michal R"
+                }
+            },
+            {
+                "SectionNumber": "007",
+                "SectionType": "DIS",
+                "SectionTypeDescr": "Discussion",
+                "SessionDescr": "Regular",
+                "InstructionMode": "In Person",
+                "ClassTopic": null,
+                "EnrollmentStatus": "Open",
+                "EnrollmentTotal": 56,
+                "EnrollmentCapacity": 80,
+                "AvailableSeats": 24,
+                "WaitTotal": 0,
+                "WaitCapacity": 99,
+                "CreditHours": 4,
+                "CombinedSectionID": "C",
+                "ClassNumber": 30094,
+                "AutoEnrollSection1": "021",
+                "AutoEnrollSection2": null,
+                "AssociatedClass": 1,
+                "EnrollmentClassType": "E",
+                "Meeting": {
+                    "MeetingNumber": 1,
+                    "Days": "TuTh",
+                    "Times": "4:00PM - 5:00PM",
+                    "ClassMtgTopic": "TBA",
+                    "Instructors": "Zochowski,Michal R"
+                },
+                "ClassInstructors": {
+                    "InstrUniqname": "MICHALZ",
+                    "InstrName": "Zochowski,Michal R"
+                }
+            },
+            {
+                "SectionNumber": "010",
+                "SectionType": "LEC",
+                "SectionTypeDescr": "Lecture",
+                "SessionDescr": "Regular",
+                "InstructionMode": "In Person",
+                "ClassTopic": null,
+                "EnrollmentStatus": "Closed",
+                "EnrollmentTotal": 22,
+                "EnrollmentCapacity": 22,
+                "AvailableSeats": 0,
+                "WaitTotal": 0,
+                "WaitCapacity": 0,
+                "CreditHours": 4,
+                "CombinedSectionID": "C",
+                "ClassNumber": 30096,
+                "AutoEnrollSection1": null,
+                "AutoEnrollSection2": null,
+                "AssociatedClass": 2,
+                "EnrollmentClassType": "N",
+                "Meeting": {
+                    "MeetingNumber": 1,
+                    "Days": "MoWeFr",
+                    "Times": "1:00PM - 2:00PM",
+                    "ClassMtgTopic": "TBA",
+                    "Instructors": "Melnichuk,Mike"
+                },
+                "ClassInstructors": {
+                    "InstrUniqname": "MMELN",
+                    "InstrName": "Melnichuk,Mike"
+                }
+            },
+            {
+                "SectionNumber": "011",
+                "SectionType": "DIS",
+                "SectionTypeDescr": "Discussion",
+                "SessionDescr": "Regular",
+                "InstructionMode": "In Person",
+                "ClassTopic": null,
+                "EnrollmentStatus": "Wait List",
+                "EnrollmentTotal": 22,
+                "EnrollmentCapacity": 22,
+                "AvailableSeats": 0,
+                "WaitTotal": 0,
+                "WaitCapacity": 50,
+                "CreditHours": 4,
+                "CombinedSectionID": "C",
+                "ClassNumber": 30097,
+                "AutoEnrollSection1": "010",
+                "AutoEnrollSection2": "023",
+                "AssociatedClass": 2,
+                "EnrollmentClassType": "E",
+                "Meeting": {
+                    "MeetingNumber": 1,
+                    "Days": "TuTh",
+                    "Times": "1:00PM - 2:00PM",
+                    "ClassMtgTopic": "TBA",
+                    "Instructors": "Melnichuk,Mike"
+                },
+                "ClassInstructors": {
+                    "InstrUniqname": "MMELN",
+                    "InstrName": "Melnichuk,Mike"
+                }
+            },
+            {
+                "SectionNumber": "021",
+                "SectionType": "MID",
+                "SectionTypeDescr": "Evening Midterm Exams",
+                "SessionDescr": "Regular",
+                "InstructionMode": "In Person",
+                "ClassTopic": null,
+                "EnrollmentStatus": "Open",
+                "EnrollmentTotal": 346,
+                "EnrollmentCapacity": 400,
+                "AvailableSeats": 54,
+                "WaitTotal": 5,
+                "WaitCapacity": 0,
+                "CreditHours": 4,
+                "CombinedSectionID": "C",
+                "ClassNumber": 30701,
+                "AutoEnrollSection1": null,
+                "AutoEnrollSection2": null,
+                "AssociatedClass": 1,
+                "EnrollmentClassType": "N",
+                "Meeting": {
+                    "MeetingNumber": 1,
+                    "Days": "Tu",
+                    "Times": "8:00PM - 10:00PM",
+                    "ClassMtgTopic": "TBA",
+                    "Instructors": "Staff"
+                }
+            },
+            {
+                "SectionNumber": "023",
+                "SectionType": "MID",
+                "SectionTypeDescr": "Evening Midterm Exams",
+                "SessionDescr": "Regular",
+                "InstructionMode": "In Person",
+                "ClassTopic": null,
+                "EnrollmentStatus": "Closed",
+                "EnrollmentTotal": 22,
+                "EnrollmentCapacity": 22,
+                "AvailableSeats": 0,
+                "WaitTotal": 0,
+                "WaitCapacity": 0,
+                "CreditHours": 4,
+                "CombinedSectionID": "C",
+                "ClassNumber": 30711,
+                "AutoEnrollSection1": null,
+                "AutoEnrollSection2": null,
+                "AssociatedClass": 2,
+                "EnrollmentClassType": "N",
+                "Meeting": {
+                    "MeetingNumber": 1,
+                    "Days": "Tu",
+                    "Times": "6:00PM - 8:00PM",
+                    "ClassMtgTopic": "TBA",
+                    "Instructors": "Staff"
+                }
+            }
+        ]
+    }
+}

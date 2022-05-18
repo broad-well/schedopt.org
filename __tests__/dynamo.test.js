@@ -5,7 +5,6 @@ describe('marshalling and unmarshalling sections for DynamoDB', () => {
   describe('marshalSection', () => {
     it('should marshal single-meeting section correctly', () => {
       const marshalled = marshalSection({
-        courseCode: 'ENGR 151',
         sectionNumber: 101,
         sectionType: 'DIS',
         creditHours: 4,
@@ -15,7 +14,7 @@ describe('marshalling and unmarshalling sections for DynamoDB', () => {
           startTime: [14, 0],
           endTime: [15, 0]
         }]
-      });
+      }, 'ENGR 151');
       assert.deepEqual(marshalled, {
         CourseCode: {S: 'ENGR 151'},
         SectionNumber: {N: 101},

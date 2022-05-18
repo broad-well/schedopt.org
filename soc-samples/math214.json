@@ -1,0 +1,320 @@
+{
+    "getSOCSectionsResponse": {
+        "@schemaLocation": "http://mais.he.umich.edu/schemas/getSOCSectionsResponse.v1 http://csprodib.dsc.umich.edu/PSIGW/PeopleSoftServiceListeningConnector/getSOCSectionsResponse.v1.xsd",
+        "Section": [
+            {
+                "SectionNumber": "001",
+                "SectionType": "LEC",
+                "SectionTypeDescr": "Lecture",
+                "SessionDescr": "Regular",
+                "InstructionMode": "In Person",
+                "ClassTopic": null,
+                "EnrollmentStatus": "Wait List",
+                "EnrollmentTotal": 60,
+                "EnrollmentCapacity": 50,
+                "AvailableSeats": 0,
+                "WaitTotal": 1,
+                "WaitCapacity": 20,
+                "CreditHours": 4,
+                "CombinedSectionID": null,
+                "ClassNumber": 15673,
+                "AutoEnrollSection1": "099",
+                "AutoEnrollSection2": null,
+                "AssociatedClass": 1,
+                "EnrollmentClassType": "E",
+                "Meeting": [
+                    {
+                        "MeetingNumber": 1,
+                        "Days": "MoWeFr",
+                        "Times": "1:00PM - 2:00PM",
+                        "ClassMtgTopic": "TBA",
+                        "Instructors": "Speyer,David E"
+                    },
+                    {
+                        "MeetingNumber": 2,
+                        "Days": "Tu",
+                        "Times": "1:00PM - 2:00PM",
+                        "ClassMtgTopic": "TBA",
+                        "Instructors": "Speyer,David E"
+                    }
+                ],
+                "ClassInstructors": {
+                    "InstrUniqname": "SPEYER",
+                    "InstrName": "Speyer,David E"
+                }
+            },
+            {
+                "SectionNumber": "002",
+                "SectionType": "LEC",
+                "SectionTypeDescr": "Lecture",
+                "SessionDescr": "Regular",
+                "InstructionMode": "In Person",
+                "ClassTopic": null,
+                "EnrollmentStatus": "Open",
+                "EnrollmentTotal": 38,
+                "EnrollmentCapacity": 50,
+                "AvailableSeats": 12,
+                "WaitTotal": 0,
+                "WaitCapacity": 20,
+                "CreditHours": 4,
+                "CombinedSectionID": null,
+                "ClassNumber": 15674,
+                "AutoEnrollSection1": "099",
+                "AutoEnrollSection2": null,
+                "AssociatedClass": 1,
+                "EnrollmentClassType": "E",
+                "Meeting": [
+                    {
+                        "MeetingNumber": 1,
+                        "Days": "MoWeFr",
+                        "Times": "2:00PM - 3:00PM",
+                        "ClassMtgTopic": "TBA",
+                        "Instructors": "Staff"
+                    },
+                    {
+                        "MeetingNumber": 2,
+                        "Days": "Tu",
+                        "Times": "2:00PM - 3:00PM",
+                        "ClassMtgTopic": "TBA",
+                        "Instructors": "Staff"
+                    }
+                ]
+            },
+            {
+                "SectionNumber": "003",
+                "SectionType": "LEC",
+                "SectionTypeDescr": "Lecture",
+                "SessionDescr": "Regular",
+                "InstructionMode": "In Person",
+                "ClassTopic": null,
+                "EnrollmentStatus": "Wait List",
+                "EnrollmentTotal": 50,
+                "EnrollmentCapacity": 50,
+                "AvailableSeats": 0,
+                "WaitTotal": 0,
+                "WaitCapacity": 20,
+                "CreditHours": 4,
+                "CombinedSectionID": null,
+                "ClassNumber": 20458,
+                "AutoEnrollSection1": "099",
+                "AutoEnrollSection2": null,
+                "AssociatedClass": 1,
+                "EnrollmentClassType": "E",
+                "Meeting": [
+                    {
+                        "MeetingNumber": 1,
+                        "Days": "MoWeFr",
+                        "Times": "3:00PM - 4:00PM",
+                        "ClassMtgTopic": "TBA",
+                        "Instructors": "Staff"
+                    },
+                    {
+                        "MeetingNumber": 2,
+                        "Days": "Tu",
+                        "Times": "3:00PM - 4:00PM",
+                        "ClassMtgTopic": "TBA",
+                        "Instructors": "Staff"
+                    }
+                ]
+            },
+            {
+                "SectionNumber": "004",
+                "SectionType": "LEC",
+                "SectionTypeDescr": "Lecture",
+                "SessionDescr": "Regular",
+                "InstructionMode": "In Person",
+                "ClassTopic": null,
+                "EnrollmentStatus": "Wait List",
+                "EnrollmentTotal": 60,
+                "EnrollmentCapacity": 50,
+                "AvailableSeats": 0,
+                "WaitTotal": 4,
+                "WaitCapacity": 20,
+                "CreditHours": 4,
+                "CombinedSectionID": null,
+                "ClassNumber": 23202,
+                "AutoEnrollSection1": "099",
+                "AutoEnrollSection2": null,
+                "AssociatedClass": 1,
+                "EnrollmentClassType": "E",
+                "Meeting": {
+                    "MeetingNumber": 1,
+                    "Days": "TuTh",
+                    "Times": "4:00PM - 6:00PM",
+                    "ClassMtgTopic": "TBA",
+                    "Instructors": "Prasanna,Kartik"
+                },
+                "ClassInstructors": {
+                    "InstrUniqname": "KARTIKP",
+                    "InstrName": "Prasanna,Kartik"
+                }
+            },
+            {
+                "SectionNumber": "005",
+                "SectionType": "LEC",
+                "SectionTypeDescr": "Lecture",
+                "SessionDescr": "Regular",
+                "InstructionMode": "In Person",
+                "ClassTopic": null,
+                "EnrollmentStatus": "Open",
+                "EnrollmentTotal": 49,
+                "EnrollmentCapacity": 50,
+                "AvailableSeats": 1,
+                "WaitTotal": 0,
+                "WaitCapacity": 20,
+                "CreditHours": 4,
+                "CombinedSectionID": null,
+                "ClassNumber": 21138,
+                "AutoEnrollSection1": "099",
+                "AutoEnrollSection2": null,
+                "AssociatedClass": 1,
+                "EnrollmentClassType": "E",
+                "Meeting": {
+                    "MeetingNumber": 1,
+                    "Days": "TuTh",
+                    "Times": "6:00PM - 8:00PM",
+                    "ClassMtgTopic": "TBA",
+                    "Instructors": "Staff"
+                }
+            },
+            {
+                "SectionNumber": "006",
+                "SectionType": "LEC",
+                "SectionTypeDescr": "Lecture",
+                "SessionDescr": "Regular",
+                "InstructionMode": "In Person",
+                "ClassTopic": null,
+                "EnrollmentStatus": "Open",
+                "EnrollmentTotal": 41,
+                "EnrollmentCapacity": 50,
+                "AvailableSeats": 9,
+                "WaitTotal": 0,
+                "WaitCapacity": 20,
+                "CreditHours": 4,
+                "CombinedSectionID": null,
+                "ClassNumber": 26149,
+                "AutoEnrollSection1": "099",
+                "AutoEnrollSection2": null,
+                "AssociatedClass": 1,
+                "EnrollmentClassType": "E",
+                "Meeting": {
+                    "MeetingNumber": 1,
+                    "Days": "TuTh",
+                    "Times": "8:00AM - 10:00AM",
+                    "ClassMtgTopic": "TBA",
+                    "Instructors": "Megginson,Robert E"
+                },
+                "ClassInstructors": {
+                    "InstrUniqname": "MEGGIN",
+                    "InstrName": "Megginson,Robert E"
+                }
+            },
+            {
+                "SectionNumber": "007",
+                "SectionType": "LEC",
+                "SectionTypeDescr": "Lecture",
+                "SessionDescr": "Regular",
+                "InstructionMode": "In Person",
+                "ClassTopic": null,
+                "EnrollmentStatus": "Open",
+                "EnrollmentTotal": 24,
+                "EnrollmentCapacity": 50,
+                "AvailableSeats": 26,
+                "WaitTotal": 0,
+                "WaitCapacity": 20,
+                "CreditHours": 4,
+                "CombinedSectionID": null,
+                "ClassNumber": 26704,
+                "AutoEnrollSection1": "099",
+                "AutoEnrollSection2": null,
+                "AssociatedClass": 1,
+                "EnrollmentClassType": "E",
+                "Meeting": [
+                    {
+                        "MeetingNumber": 1,
+                        "Days": "MoWeFr",
+                        "Times": "9:00AM - 10:00AM",
+                        "ClassMtgTopic": "TBA",
+                        "Instructors": "Staff"
+                    },
+                    {
+                        "MeetingNumber": 2,
+                        "Days": "Tu",
+                        "Times": "9:00AM - 10:00AM",
+                        "ClassMtgTopic": "TBA",
+                        "Instructors": "Staff"
+                    }
+                ]
+            },
+            {
+                "SectionNumber": "008",
+                "SectionType": "LEC",
+                "SectionTypeDescr": "Lecture",
+                "SessionDescr": "Regular",
+                "InstructionMode": "In Person",
+                "ClassTopic": null,
+                "EnrollmentStatus": "Open",
+                "EnrollmentTotal": 28,
+                "EnrollmentCapacity": 50,
+                "AvailableSeats": 22,
+                "WaitTotal": 0,
+                "WaitCapacity": 20,
+                "CreditHours": 4,
+                "CombinedSectionID": null,
+                "ClassNumber": 33496,
+                "AutoEnrollSection1": "099",
+                "AutoEnrollSection2": null,
+                "AssociatedClass": 1,
+                "EnrollmentClassType": "E",
+                "Meeting": {
+                    "MeetingNumber": 1,
+                    "Days": "MoWe",
+                    "Times": "8:00AM - 10:00AM",
+                    "ClassMtgTopic": "TBA",
+                    "Instructors": "Strauss,Martin J"
+                },
+                "ClassInstructors": {
+                    "InstrUniqname": "MARTINJS",
+                    "InstrName": "Strauss,Martin J"
+                }
+            },
+            {
+                "SectionNumber": "099",
+                "SectionType": "MID",
+                "SectionTypeDescr": "Evening Midterm Exams",
+                "SessionDescr": "Regular",
+                "InstructionMode": "In Person",
+                "ClassTopic": null,
+                "EnrollmentStatus": "Open",
+                "EnrollmentTotal": 350,
+                "EnrollmentCapacity": 420,
+                "AvailableSeats": 70,
+                "WaitTotal": 5,
+                "WaitCapacity": 0,
+                "CreditHours": 4,
+                "CombinedSectionID": null,
+                "ClassNumber": 27407,
+                "AutoEnrollSection1": null,
+                "AutoEnrollSection2": null,
+                "AssociatedClass": 1,
+                "EnrollmentClassType": "N",
+                "Meeting": [
+                    {
+                        "MeetingNumber": 1,
+                        "Days": "Mo",
+                        "Times": "6:00PM - 8:00PM",
+                        "ClassMtgTopic": "TBA",
+                        "Instructors": "Staff"
+                    },
+                    {
+                        "MeetingNumber": 2,
+                        "Days": "Mo",
+                        "Times": "6:00PM - 8:00PM",
+                        "ClassMtgTopic": "TBA",
+                        "Instructors": "Staff"
+                    }
+                ]
+            }
+        ]
+    }
+}
