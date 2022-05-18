@@ -88,6 +88,11 @@ export class Database {
           TableName: this._sectionTableName(),
         }),
       );
+    } catch (exc) {
+      // Expecting RIUE if tables already exist
+      if (!(exc instanceof ResourceInUseException)) throw exc;
+    }
+    try {
       await this.client.send(
         new CreateTableCommand({
           AttributeDefinitions: [
@@ -103,6 +108,11 @@ export class Database {
           TableName: this._clusterTableName(),
         }),
       );
+    } catch (exc) {
+      // Expecting RIUE if tables already exist
+      if (!(exc instanceof ResourceInUseException)) throw exc;
+    }
+    try {
       await this.client.send(new CreateTableCommand({
         AttributeDefinitions: [
           { AttributeName: "School", AttributeType: "S" }
