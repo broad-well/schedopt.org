@@ -49,7 +49,7 @@ export function marshalSection(section, courseCode) {
     CreditHours: { N: section.creditHours.toString() },
     ClassNumber: { N: section.classNumber.toString() },
     Meetings: {
-      L: section.meetings.map(({ days, startTime, endTime }) => (
+      L: section.meetings.filter(it => it != null).map(({ days, startTime, endTime }) => (
         {
           M: {
             days: { L: days.map((day) => ({ N: day.toString() })) },
