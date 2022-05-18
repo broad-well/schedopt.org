@@ -14,42 +14,42 @@ import * as soc from '../socApi.js'
 //     .then(console.log).catch(console.error)
 
 class RequestMalformedException extends Error {
-    constructor(msg, code) {
-        super(msg);
-        this.code = code ?? 422;
-    }
+  constructor(msg, code) {
+    super(msg);
+    this.code = code ?? 422;
+  }
 }
 
 class UnknownCourseException extends Error {
-    constructor(course) {
-        super(`Unknown course: ${course}`);
-    }
+  constructor(course) {
+    super(`Unknown course: ${course}`);
+  }
 }
 
 function requireRequest(cond, error, code) {
-    if (!cond) {
-        throw new RequestMalformedException(error, code);
-    }
+  if (!cond) {
+    throw new RequestMalformedException(error, code);
+  }
 }
 
 const apiRetrievers = {
-    umich: {
-        FA22: async (db, course) => {
-            let key = await db.getApiAccessKey();
-            if (key == null) {
-                key = await soc.requestAccessToken();
-                await db.updateApiAccessKey(key, new Date(Date.now() + 1000 * 60 * 60));
-            }
-            const rawResponse = await soc.fetchSections(key, 'FA22', course);
-            if (!('getSOCSectionsResponse' in rawResponse) || !('Section' in rawResponse.getSOCSectionsResponse)) {
-                throw new UnknownCourseException(course);
-            }
-            const rawSections = rawResponse.getSOCSectionsResponse.Section;
-            const rawSectionsList = (rawSections instanceof Array ? rawSections : [rawSections]);
-            const sections = rawSectionsList.filter(it => it.SectionType !== 'MID').map(compact);
-            return { rawSections: rawSectionsList, sections };
-        }
+  umich: {
+    FA22: async (db, course) => {
+      let key = await db.getApiAccessKey();
+      if (key == null) {
+        key = await soc.requestAccessToken();
+        await db.updateApiAccessKey(key, new Date(Date.now() + 1000 * 60 * 60));
+      }
+      const rawResponse = await soc.fetchSections(key, 'FA22', course);
+      if (!('getSOCSectionsResponse' in rawResponse) || !('Section' in rawResponse.getSOCSectionsResponse)) {
+        throw new UnknownCourseException(course);
+      }
+      const rawSections = rawResponse.getSOCSectionsResponse.Section;
+      const rawSectionsList = (rawSections instanceof Array ? rawSections : [rawSections]);
+      const sections = rawSectionsList.filter(it => it.SectionType !== 'MID').map(compact);
+      return { rawSections: rawSectionsList, sections };
     }
+  }
 };
 
 /**
@@ -58,52 +58,61 @@ const apiRetrievers = {
  * @param {string} term 
  */
 async function courseLoadAndValid(db, school, term, course) {
-    if (await db.hasCourse(course)) {
-        return true;
-    }
-    try {
-        const { rawSections, sections } = await apiRetrievers[school][term](db, course);
-        await db.writeCourse(course, sections, Array.from(allClusters(rawSections)).map(cluster => cluster.map(section => parseInt(section))));
-        return true;
-    } catch (exc) {
-        if (exc instanceof UnknownCourseException) return false;
-        throw exc;
-    }
+  if (await db.hasCourse(course)) {
+    return true;
+  }
+  try {
+    const { rawSections, sections } = await apiRetrievers[school][term](db, course);
+    await db.writeCourse(course, sections, Array.from(allClusters(rawSections)).map(cluster => cluster.map(section => parseInt(section))));
+    return true;
+  } catch (exc) {
+    if (exc instanceof UnknownCourseException) return false;
+    throw exc;
+  }
 }
 
 export async function handler(event) {
-    // POST body format: {school: 'umich', term: 'FA22', courses: [['EECS',280],['EECS',203],['MATH',215]]}
-    // response format: {status: 'ok'/'error', invalidCourses: [['EECS',204]]}
-    try {
-        requireRequest(event.httpMethod === 'POST', 'Incorrect method', 405);
-        requireRequest(event.body != null && event.body.length > 0, 'Missing body');
-        const body = JSON.parse(event.body);
-        for (const key of ['school', 'term', 'courses']) {
-            requireRequest(body[key] != undefined, `Empty or invalid value for "${key}"`);
-        }
-        requireRequest(Object.keys(apiRetrievers).includes(body.school), `Unknown school: "${body.school}`);
-        requireRequest(Object.keys(apiRetrievers[body.school]).includes(body.term), `Unknown term for ${body.school}: "${body.term}"`);
-        
-        const db = new Database(body.school, body.term);
-        await db.createTablesIfNeeded();
-        const badCourses = (await Promise.all(body.courses.map(async course => [course, await courseLoadAndValid(db, body.school, body.term, course)])))
-            .filter(it => !it[1]).map(it => it[0])
-        
-        return {
-            statusCode: 200,
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({status: badCourses.length === 0 ? 'ok' : 'error', invalidCourses: badCourses})
-        };
-    } catch (exc) {
-        console.error(exc);
-        return {
-            statusCode: 500,
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(exc)
-        }
+  // POST body format: {school: 'umich', term: 'FA22', courses: [['EECS',280],['EECS',203],['MATH',215]]}
+  // response format: {status: 'ok'/'error', invalidCourses: [['EECS',204]]}
+  try {
+    requireRequest(event.httpMethod === 'POST', 'Incorrect method', 405);
+    requireRequest(event.body != null && event.body.length > 0, 'Missing body');
+    const body = JSON.parse(event.body);
+    for (const key of ['school', 'term', 'courses']) {
+      requireRequest(body[key] != undefined, `Empty or invalid value for "${key}"`);
     }
+    requireRequest(Object.keys(apiRetrievers).includes(body.school), `Unknown school: "${body.school}`);
+    requireRequest(Object.keys(apiRetrievers[body.school]).includes(body.term), `Unknown term for ${body.school}: "${body.term}"`);
+
+    const db = new Database(body.school, body.term);
+    await db.createTablesIfNeeded();
+    const badCourses = (await Promise.all(body.courses.map(async course => [course, await courseLoadAndValid(db, body.school, body.term, course)])))
+      .filter(it => !it[1]).map(it => it[0])
+
+    return {
+      statusCode: 200,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ status: badCourses.length === 0 ? 'ok' : 'error', invalidCourses: badCourses })
+    };
+  } catch (exc) {
+    console.error(exc);
+    if (exc.name === 'SyntaxError') {
+      return {
+        statusCode: 422,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: 'error', error: exc.message })
+      }
+    }
+    return {
+      statusCode: 500,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(exc)
+    }
+  }
 };
