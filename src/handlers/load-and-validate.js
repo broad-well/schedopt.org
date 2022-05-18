@@ -37,7 +37,7 @@ const apiRetrievers = {
         FA22: async (db, course) => {
             let key = await db.getApiAccessKey();
             if (key == null) {
-                key = await getSOCToken();
+                key = await soc.requestAccessToken();
                 await db.updateApiAccessKey(key, new Date(Date.now() + 1000 * 60 * 60));
             }
             const rawResponse = soc.fetchSections(key, 'FA22', course);
