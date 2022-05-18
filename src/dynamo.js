@@ -96,6 +96,10 @@ export class Database {
           KeySchema: [
             { AttributeName: "CourseCode", KeyType: "HASH" },
           ],
+          ProvisionedThroughput: {
+            ReadCapacityUnits: 2,
+            WriteCapacityUnits: 1,
+          },
           TableName: this._clusterTableName(),
         }),
       );
@@ -106,6 +110,10 @@ export class Database {
         KeySchema: [
           { AttributeName: 'School', KeyType: 'HASH' }
         ],
+        ProvisionedThroughput: {
+          ReadCapacityUnits: 2,
+          WriteCapacityUnits: 1,
+        },
         TableName: 'APIKeys'
       }));
     } catch (exc) {
