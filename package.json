@@ -15,6 +15,7 @@
         "mocha": "^10.0.0"
     },
     "scripts": {
+        "mocha": "mocha __tests__/*.test.js",
         "test": "exit 0"
     }
 }

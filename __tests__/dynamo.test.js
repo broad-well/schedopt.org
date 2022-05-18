@@ -17,15 +17,15 @@ describe('marshalling and unmarshalling sections for DynamoDB', () => {
       }, 'ENGR 151');
       assert.deepEqual(marshalled, {
         CourseCode: {S: 'ENGR 151'},
-        SectionNumber: {N: 101},
+        SectionNumber: {N: "101"},
         SectionType: {S: 'DIS'},
-        CreditHours: {N: 4},
-        ClassNumber: {N: 14223},
+        CreditHours: {N: "4"},
+        ClassNumber: {N: "14223"},
         Meetings: {L: [
           {M: {
-            days: {L: [{N: 0}, {N: 0}, {N: 1}, {N: 0}, {N: 0}]},
-            startTime: {L: [{N: 14}, {N: 0}]},
-            endTime: {L: [{N: 15}, {N: 0}]}
+            days: {L: [{N: "0"}, {N: "0"}, {N: "1"}, {N: "0"}, {N: "0"}]},
+            startTime: {L: [{N: "14"}, {N: "0"}]},
+            endTime: {L: [{N: "15"}, {N: "0"}]}
           }}
         ]}
       });

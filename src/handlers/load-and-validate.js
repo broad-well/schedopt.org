@@ -40,13 +40,14 @@ const apiRetrievers = {
                 key = await soc.requestAccessToken();
                 await db.updateApiAccessKey(key, new Date(Date.now() + 1000 * 60 * 60));
             }
-            const rawResponse = soc.fetchSections(key, 'FA22', course);
+            const rawResponse = await soc.fetchSections(key, 'FA22', course);
             if (!('getSOCSectionsResponse' in rawResponse)) {
                 throw new UnknownCourseException(course);
             }
             const rawSections = rawResponse.getSOCSectionsResponse.Section;
-            const sections = (rawSections instanceof Array ? rawSections : [rawSections]).map(compact);
-            return sections;
+            const rawSectionsList = (rawSections instanceof Array ? rawSections : [rawSections]);
+            const sections = rawSectionsList.filter(it => it.SectionType !== 'MID').map(compact);
+            return { rawSections: rawSectionsList, sections };
         }
     }
 };
@@ -57,10 +58,12 @@ const apiRetrievers = {
  * @param {string} term 
  */
 async function courseLoadAndValid(db, school, term, course) {
-    if (await db.hasCourse(course)) return true;
+    if (await db.hasCourse(course)) {
+        return true;
+    }
     try {
-        const sections = await apiRetrievers[school][term](db, course);
-        await db.writeCourse(course, sections, Array.from(allClusters(sections)).map(cluster => cluster.map(section => parseInt(section))));
+        const { rawSections, sections } = await apiRetrievers[school][term](db, course);
+        await db.writeCourse(course, sections, Array.from(allClusters(rawSections)).map(cluster => cluster.map(section => parseInt(section))));
         return true;
     } catch (exc) {
         if (exc instanceof UnknownCourseException) return false;
@@ -81,10 +84,9 @@ export async function handler(event) {
         requireRequest(Object.keys(apiRetrievers).includes(body.school), `Unknown school: "${body.school}`);
         requireRequest(Object.keys(apiRetrievers[body.school]).includes(body.term), `Unknown term for ${body.school}: "${body.term}"`);
         
-
         const db = new Database(body.school, body.term);
         await db.createTablesIfNeeded();
-        const badCourses = (await Promise.all(body.courses.map(course => [course, courseLoadAndValid(db, body.school, body.term, course)])))
+        const badCourses = (await Promise.all(body.courses.map(async course => [course, await courseLoadAndValid(db, body.school, body.term, course)])))
             .filter(it => !it[1]).map(it => it[0])
         
         return {

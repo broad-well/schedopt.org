@@ -44,17 +44,17 @@ export function unmarshalSection(section) {
 export function marshalSection(section, courseCode) {
   return {
     CourseCode: { S: courseCode },
-    SectionNumber: { N: section.sectionNumber },
+    SectionNumber: { N: section.sectionNumber.toString() },
     SectionType: { S: section.sectionType },
-    CreditHours: { N: section.creditHours },
-    ClassNumber: { N: section.classNumber },
+    CreditHours: { N: section.creditHours.toString() },
+    ClassNumber: { N: section.classNumber.toString() },
     Meetings: {
       L: section.meetings.map(({ days, startTime, endTime }) => (
         {
           M: {
-            days: { L: days.map((day) => ({ N: day })) },
-            startTime: { L: startTime.map((num) => ({ N: num })) },
-            endTime: { L: endTime.map((num) => ({ N: num })) },
+            days: { L: days.map((day) => ({ N: day.toString() })) },
+            startTime: { L: startTime.map((num) => ({ N: num.toString() })) },
+            endTime: { L: endTime.map((num) => ({ N: num.toString() })) },
           },
         }
       )),
@@ -182,29 +182,39 @@ export class Database {
   }
   async writeCourse([catalog, number], sections, clusters) {
     const courseCode = courseToCode(catalog, number);
-    await this.client.send(
-      new BatchWriteItemCommand({
-        RequestItems: {
-          [this._sectionTableName()]: sections.map((section) => ({
-            PutRequest: {
-              Item: marshalSection(section, courseCode),
-            },
-          })),
-          [this._clusterTableName()]: [{
-            PutRequest: {
-              Item: {
-                CourseCode: { S: courseCode },
-                Clusters: {
-                  L: clusters.map((cluster) => ({
-                    L: cluster.map((section) => ({ N: section })),
-                  })),
-                },
+    // Need to split up the requests to 25 items each
+    const sectionItems = sections.map((section) => ({
+      PutRequest: {
+        Item: marshalSection(section, courseCode),
+      },
+    }));
+
+    const initCommand = {
+      RequestItems: {
+        [this._sectionTableName()]: sectionItems.slice(0, 24),
+        [this._clusterTableName()]: [{
+          PutRequest: {
+            Item: {
+              CourseCode: { S: courseCode },
+              Clusters: {
+                L: clusters.map((cluster) => ({
+                  L: cluster.map((section) => ({ N: section.toString() })),
+                })),
               },
             },
-          }],
-        },
-      }),
-    );
+          },
+        }],
+      },
+    };
+    const commands = [initCommand];
+    for (let i = 24; i < sectionItems.length; i += 25) {
+      commands.push({
+        RequestItems: {
+          [this._sectionTableName()]: sectionItems.slice(i, i + 25)
+        }
+      });
+    }
+    await Promise.all(commands.map(async cmd => await this.client.send(new BatchWriteItemCommand(cmd))));
   }
 
   _sectionTableName() {
