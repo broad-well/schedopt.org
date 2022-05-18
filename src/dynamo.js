@@ -76,10 +76,6 @@ export class Database {
           AttributeDefinitions: [
             { AttributeName: "CourseCode", AttributeType: "S" },
             { AttributeName: "SectionNumber", AttributeType: "N" },
-            { AttributeName: "SectionType", AttributeType: "S" },
-            { AttributeName: "CreditHours", AttributeType: "N" },
-            { AttributeName: "ClassNumber", AttributeType: "N" },
-            { AttributeName: "Meetings", AttributeType: "B" },
           ],
           KeySchema: [
             { AttributeName: "CourseCode", KeyType: "HASH" },
@@ -96,7 +92,6 @@ export class Database {
         new CreateTableCommand({
           AttributeDefinitions: [
             { AttributeName: "CourseCode", AttributeType: "S" },
-            { AttributeName: "Clusters", AttributeType: "B" },
           ],
           KeySchema: [
             { AttributeName: "CourseCode", KeyType: "HASH" },
@@ -106,9 +101,7 @@ export class Database {
       );
       await this.client.send(new CreateTableCommand({
         AttributeDefinitions: [
-          { AttributeName: "School", AttributeType: "S" },
-          { AttributeName: "AccessKey", AttributeType: "S" },
-          { AttributeName: "AccessExpiration", AttributeType: "S" }
+          { AttributeName: "School", AttributeType: "S" }
         ],
         KeySchema: [
           { AttributeName: 'School', KeyType: 'HASH' }
