@@ -41,7 +41,7 @@ const apiRetrievers = {
                 await db.updateApiAccessKey(key, new Date(Date.now() + 1000 * 60 * 60));
             }
             const rawResponse = await soc.fetchSections(key, 'FA22', course);
-            if (!('getSOCSectionsResponse' in rawResponse)) {
+            if (!('getSOCSectionsResponse' in rawResponse) || !('Section' in rawResponse.getSOCSectionsResponse)) {
                 throw new UnknownCourseException(course);
             }
             const rawSections = rawResponse.getSOCSectionsResponse.Section;
