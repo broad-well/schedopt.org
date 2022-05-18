@@ -68,7 +68,7 @@ async function courseLoadAndValid(db, school, term, course) {
     }
 }
 
-exports.handler = async (event) => {
+export async function handler(event) {
     // POST body format: {school: 'umich', term: 'FA22', courses: [['EECS',280],['EECS',203],['MATH',215]]}
     // response format: {status: 'ok'/'error', invalidCourses: [['EECS',204]]}
     try {
