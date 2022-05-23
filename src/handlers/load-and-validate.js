@@ -112,7 +112,7 @@ export async function handler(event) {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(exc)
+      body: exc.message
     }
   }
 };
