@@ -88,6 +88,7 @@ describe("compact", () => {
       sectionType: "LEC",
       creditHours: 3,
       classNumber: 10820,
+      instructors: ['CASTANCA'],
       meetings: [
         {
           days: [1, 0, 1, 0, 0],

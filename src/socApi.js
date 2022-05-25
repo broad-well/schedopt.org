@@ -15,12 +15,27 @@ export async function requestAccessToken() {
   return res.data.access_token;
 }
 
+const termMap = {
+  FA22: 2410
+};
+
 export async function fetchSections(token, term, [catalog, number]) {
-  const termMap = {
-    FA22: 2410
-  };
   const res = await axios.get(
     `https://apigw.it.umich.edu/um/Curriculum/SOC/Terms/${termMap[term]}/Schools/UM/Subjects/${catalog}/CatalogNbrs/${number}/Sections?IncludeAllSections=Y`,
+    {
+      headers: {
+        "Authorization": "Bearer " + token,
+        "X-IBM-Client-Id": umSocApi.clientId,
+        "Accept": "application/json",
+      },
+    },
+  );
+  return res.data;
+}
+
+export async function fetchMeetings(token, term, [catalog, number], section) {
+  const res = await axios.get(
+    `https://apigw.it.umich.edu/um/Curriculum/SOC/Terms/${termMap[term]}/Schools/UM/Subjects/${catalog}/CatalogNbrs/${number}/Sections/${section}/Meetings`,
     {
       headers: {
         "Authorization": "Bearer " + token,

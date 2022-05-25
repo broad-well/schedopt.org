@@ -33,6 +33,7 @@ export function unmarshalSection(section) {
     sectionType: section.SectionType.S,
     creditHours: section.CreditHours.N,
     classNumber: section.ClassNumber.N,
+    ... (section.Instructors == undefined ? {}: {instructors: section.Instructors.L.map(it => it.S)}),
     meetings: section.Meetings.L.map((item) =>
       Object.fromEntries(
         Object.entries(item.M).map(([k, v]) => [k, v.L.map((s) => s.N)]),
@@ -48,6 +49,7 @@ export function marshalSection(section, courseCode) {
     SectionType: { S: section.sectionType },
     CreditHours: { N: section.creditHours.toString() },
     ClassNumber: { N: section.classNumber.toString() },
+    ... (section.instructors == undefined ? {} : {Instructors: { L: section.instructors.map(inst => ({S: inst})) }}),
     Meetings: {
       L: section.meetings.filter(it => it != null).map(({ days, startTime, endTime }) => (
         {
