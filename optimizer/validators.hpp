@@ -5,6 +5,11 @@
 class Validator {
  public:
   virtual bool operator()(Schedule const&) const = 0;
+  virtual bool CheckInsertion(Schedule const& sched, ClassSection const& sect) const {
+    Schedule newSched(sched);
+    newSched.AddSection(sect);
+    return (*this)(newSched);
+  }
 };
 
 namespace valid {
@@ -25,6 +30,10 @@ class NoTimeConflicts: public Validator {
       }
     }
     return true;
+  }
+
+  bool CheckInsertion(Schedule const& sched, ClassSection const& sect) const override {
+
   }
 };
 

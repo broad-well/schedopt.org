@@ -45,9 +45,15 @@ TEST_CASE("ac-bd Monday is a time conflict") {
       {"new"}, "DIS", 28113, 10, 4
   };
 
+  auto ntc = valid::NoTimeConflicts();
   sched.AddSection(eecs);
+
+  CHECK(ntc.CheckInsertion(sched, chem));
   sched.AddSection(chem);
+
+  CHECK_FALSE(ntc.CheckInsertion(sched, section));
   sched.AddSection(section);
+
   CHECK_FALSE(valid::NoTimeConflicts()(sched));
 }
 
@@ -57,7 +63,10 @@ TEST_CASE("ae-bd Friday is a time conflict") {
       {{{{11, 30}, {13, 30}}, {}, 0b0001101}},
       {"old"}, "LEC", 22553, 4, 4
   };
+  auto ntc = valid::NoTimeConflicts();
+
   sched.AddSection(math);
+  CHECK_FALSE(ntc.CheckInsertion(sched, section));
   sched.AddSection(section);
   CHECK_FALSE(valid::NoTimeConflicts()(sched));
 }
@@ -68,7 +77,11 @@ TEST_CASE("ac-ce Tuesday is not a time conflict") {
       {{{{9, 0}, {10, 0}}, {}, 0b0101010}},
       {"test"}, "LEC", 24160, 3, 4
   };
+  valid::NoTimeConflicts ntc;
+
+  CHECK(ntc.CheckInsertion(sched, eecs));
   sched.AddSection(eecs);
+  CHECK(ntc.CheckInsertion(sched, section));
   sched.AddSection(section);
   CHECK(valid::NoTimeConflicts()(sched));
 }
