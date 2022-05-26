@@ -46,6 +46,7 @@ TEST_CASE("ac-bd Monday is a time conflict") {
   };
 
   auto ntc = valid::NoTimeConflicts();
+  CHECK(ntc.CheckInsertion(sched, eecs));
   sched.AddSection(eecs);
 
   CHECK(ntc.CheckInsertion(sched, chem));
@@ -65,6 +66,7 @@ TEST_CASE("ae-bd Friday is a time conflict") {
   };
   auto ntc = valid::NoTimeConflicts();
 
+  CHECK(ntc.CheckInsertion(sched, math));
   sched.AddSection(math);
   CHECK_FALSE(ntc.CheckInsertion(sched, section));
   sched.AddSection(section);
@@ -114,9 +116,13 @@ TEST_SUITE("travel practical") {
         {{{{16, 0}, {17, 0}}, {{-83.73623127817956, 42.275824608796086}}, 0b0100100}},
         {"physical"}, "LAB", 22411, 19, 4
     };
+    valid::TravelPractical tp;
+
+    CHECK(tp.CheckInsertion(sched, digital));
     sched.AddSection(digital);
+    CHECK(tp.CheckInsertion(sched, digital));
     sched.AddSection(physics);
-    CHECK(valid::TravelPractical()(sched));
+    CHECK(tp(sched));
   }
 
   TEST_CASE("central-to-central with gap is practical (Michigan time)") {
@@ -129,9 +135,13 @@ TEST_SUITE("travel practical") {
         {{{{16, 30}, {17, 30}}, {{-83.73623127817956, 42.275824608796086}}, 0b0100100}},
         {"physical"}, "LAB", 22411, 19, 4
     };
+    valid::TravelPractical tp;
+
+    CHECK(tp.CheckInsertion(sched, digital));
     sched.AddSection(digital);
+    CHECK(tp.CheckInsertion(sched, physics));
     sched.AddSection(physics);
-    CHECK(valid::TravelPractical()(sched));
+    CHECK(tp(sched));
   }
 
   TEST_CASE("central-to-north with no gap is not practical") {
@@ -144,10 +154,39 @@ TEST_SUITE("travel practical") {
         {{{{16, 0}, {17, 0}}, {{-83.71382276363592, 42.29105755443403}}, 0b0100100}},
         {"ioe"}, "LAB", 22411, 23, 4
     };
+    valid::TravelPractical tp;
+
+    CHECK(tp.CheckInsertion(sched, digital));
     sched.AddSection(digital);
+    CHECK_FALSE(tp.CheckInsertion(sched, ioe));
     sched.AddSection(ioe);
-    CHECK(valid::TravelPractical()(sched));
+    CHECK_FALSE(valid::TravelPractical()(sched));
   }
-  // Remember: incremental checks (Validator.VerifyInsertion)
+
+TEST_CASE("hill-to-Ross with no gap is not practical") {
+  Schedule sched;
+  ClassSection lifeScience {
+      {{{{8, 0}, {9, 30}}, {{-83.73416740767517, 42.27969979870305}}, 0b0101000}},
+      {"lifesci"}, "LEC", 22444, 1, 4
+  };
+  ClassSection pubHealth {
+      {{{{9, 30}, {10, 30}}, {{-83.73018194342629, 42.2802180384397}}, 0b0000101}},
+      {"digital"}, "LEC", 19952, 1, 3
+  };
+  ClassSection bus {
+      {{{{10, 30}, {12, 0}}, {{-83.73788423020557, 42.27300677251735}}, 0b0100001}},
+      {"business"}, "LEC", 28853, 23, 3
+  };
+  valid::TravelPractical tp;
+
+  CHECK(tp.CheckInsertion(sched, pubHealth));
+  sched.AddSection(pubHealth);
+  CHECK(tp.CheckInsertion(sched, lifeScience));
+  sched.AddSection(lifeScience);
+  CHECK_FALSE(tp.CheckInsertion(sched, bus));
+  sched.AddSection(bus);
+  CHECK_FALSE(valid::TravelPractical()(sched));
+}
+
 }
 }

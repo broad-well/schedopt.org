@@ -19,6 +19,9 @@ struct Time {
   inline auto operator==(Time const other) const {
     return minutes_since_midnight() == other.minutes_since_midnight();
   }
+  inline signed short operator-(Time const other) const {
+    return static_cast<signed short>(minutes_since_midnight()) - static_cast<signed short>(other.minutes_since_midnight());
+  }
 
  private:
   inline unsigned short minutes_since_midnight() const {

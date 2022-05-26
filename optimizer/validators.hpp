@@ -33,14 +33,75 @@ class NoTimeConflicts: public Validator {
   }
 
   bool CheckInsertion(Schedule const& sched, ClassSection const& sect) const override {
-
+    using namespace std;
+    for (auto const& blk: sect.blocks) {
+      auto days {blk.days};
+      for (int d = kNumWeekdays - 1; d >= 0; --d, days >>= 1) {
+        if (days & 1) {
+          auto const& blocksOnDay = sched.BlocksOnDay(static_cast<std::uint8_t>(d));
+          auto insPos = lower_bound(begin(blocksOnDay), end(blocksOnDay), &blk, [](auto const a, auto const b) {
+            return a->start < b->start;
+          });
+          if (insPos != begin(blocksOnDay)) {
+            auto prevBlock = insPos;
+            --prevBlock;
+            if ((*prevBlock)->OverlapsWith(blk)) return false;
+          }
+          if (insPos != end(blocksOnDay)) {
+            if ((*insPos)->OverlapsWith(blk)) return false;
+          }
+        }
+      }
+    }
+    return true;
   }
 };
 
 class TravelPractical: public Validator {
  public:
   bool operator()(Schedule const& sched) const override {
+    using namespace std;
+    for (std::uint8_t day = 0; day < kNumWeekdays; ++day) {
+      auto const &blocks = sched.BlocksOnDay(day);
+      auto it1 = begin(blocks), it2 = it1;
+      if (it2 != end(blocks)) ++it2;
+      while (it2 != end(blocks)) {
+        if (!travel_practical_from_to(**it1, **it2)) return false;
+        ++it1;
+        ++it2;
+      }
+    }
     return true;
+  }
+
+  bool CheckInsertion(Schedule const& sched, ClassSection const& section) const override {
+    using namespace std;
+    for (auto const& blk: section.blocks) {
+      auto days {blk.days};
+      for (int d = kNumWeekdays - 1; d >= 0; --d, days >>= 1) {
+        if (days & 1) {
+          auto const& blocksOnDay = sched.BlocksOnDay(static_cast<std::uint8_t>(d));
+          auto insPos = lower_bound(begin(blocksOnDay), end(blocksOnDay), &blk, [](auto const a, auto const b) {
+            return a->start < b->start;
+          });
+          if (insPos != begin(blocksOnDay)) {
+            auto prevBlock = insPos;
+            --prevBlock;
+            if (!travel_practical_from_to(**prevBlock, blk)) return false;
+          }
+          if (insPos != end(blocksOnDay)) {
+            if (!travel_practical_from_to(blk, **insPos)) return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
+ private:
+  inline bool travel_practical_from_to(TimeBlock const& b1, TimeBlock const& b2) const {
+    double dist = MetersBetween(b1, b2);
+    auto interval = b1.start - b2.end;
+    return dist <= 1000 || interval > 10;
   }
 };
 }
