@@ -4,7 +4,17 @@
 
 class Validator {
  public:
+  // True iff valid
   virtual bool operator()(Schedule const&) const = 0;
+  // True: Checked, inserted
+  // False: Check failed, resulting schedule is partial; discard it
+  virtual bool CheckedInsert(Schedule& sched, ClassSection const& sect) const {
+    if (CheckInsertion(sched, sect)) {
+      sched.AddSection(sect);
+      return true;
+    }
+    return false;
+  }
   virtual bool CheckInsertion(Schedule const& sched, ClassSection const& sect) const {
     Schedule newSched(sched);
     newSched.AddSection(sect);
@@ -98,7 +108,7 @@ class TravelPractical: public Validator {
     return true;
   }
  private:
-  inline bool travel_practical_from_to(TimeBlock const& b1, TimeBlock const& b2) const {
+  static inline bool travel_practical_from_to(TimeBlock const& b1, TimeBlock const& b2) {
     double dist = MetersBetween(b1, b2);
     auto interval = b1.start - b2.end;
     return dist <= 1000 || interval > 10;

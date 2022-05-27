@@ -46,16 +46,9 @@ TEST_CASE("ac-bd Monday is a time conflict") {
   };
 
   auto ntc = valid::NoTimeConflicts();
-  CHECK(ntc.CheckInsertion(sched, eecs));
-  sched.AddSection(eecs);
-
-  CHECK(ntc.CheckInsertion(sched, chem));
-  sched.AddSection(chem);
-
-  CHECK_FALSE(ntc.CheckInsertion(sched, section));
-  sched.AddSection(section);
-
-  CHECK_FALSE(valid::NoTimeConflicts()(sched));
+  CHECK(ntc.CheckedInsert(sched, eecs));
+  CHECK(ntc.CheckedInsert(sched, chem));
+  CHECK_FALSE(ntc.CheckedInsert(sched, section));
 }
 
 TEST_CASE("ae-bd Friday is a time conflict") {
@@ -66,11 +59,8 @@ TEST_CASE("ae-bd Friday is a time conflict") {
   };
   auto ntc = valid::NoTimeConflicts();
 
-  CHECK(ntc.CheckInsertion(sched, math));
-  sched.AddSection(math);
-  CHECK_FALSE(ntc.CheckInsertion(sched, section));
-  sched.AddSection(section);
-  CHECK_FALSE(valid::NoTimeConflicts()(sched));
+  CHECK(ntc.CheckedInsert(sched, math));
+  CHECK_FALSE(ntc.CheckedInsert(sched, section));
 }
 
 TEST_CASE("ac-ce Tuesday is not a time conflict") {
@@ -81,23 +71,13 @@ TEST_CASE("ac-ce Tuesday is not a time conflict") {
   };
   valid::NoTimeConflicts ntc;
 
-  CHECK(ntc.CheckInsertion(sched, eecs));
-  sched.AddSection(eecs);
-  CHECK(ntc.CheckInsertion(sched, section));
-  sched.AddSection(section);
+  CHECK(ntc.CheckedInsert(sched, eecs));
+  CHECK(ntc.CheckedInsert(sched, section));
   CHECK(valid::NoTimeConflicts()(sched));
 }
 
-TEST_CASE("ce-cf Sunday is a time conflict within a section") {
-  Schedule sched;
-  ClassSection section{
-      {{{{9, 0}, {10, 30}}, {}, 0b0010001},
-       {{{9, 0}, {12, 0}}, {}, 0b0100001}},
-      {"mpx"}, "LEC", 11141, 5, 3
-  };
-  sched.AddSection(section);
-  CHECK_FALSE(valid::NoTimeConflicts()(sched));
-}
+// NOTE: time conflicts within sections are not detected by valid::NoTimeConflicts
+//   the registrar may publish clusters with conflicts, but not within sections
 }
 
 TEST_SUITE("travel practical") {
@@ -118,10 +98,8 @@ TEST_SUITE("travel practical") {
     };
     valid::TravelPractical tp;
 
-    CHECK(tp.CheckInsertion(sched, digital));
-    sched.AddSection(digital);
-    CHECK(tp.CheckInsertion(sched, digital));
-    sched.AddSection(physics);
+    CHECK(tp.CheckedInsert(sched, digital));
+    CHECK(tp.CheckedInsert(sched, digital));
     CHECK(tp(sched));
   }
 
@@ -137,10 +115,8 @@ TEST_SUITE("travel practical") {
     };
     valid::TravelPractical tp;
 
-    CHECK(tp.CheckInsertion(sched, digital));
-    sched.AddSection(digital);
-    CHECK(tp.CheckInsertion(sched, physics));
-    sched.AddSection(physics);
+    CHECK(tp.CheckedInsert(sched, digital));
+    CHECK(tp.CheckedInsert(sched, physics));
     CHECK(tp(sched));
   }
 
@@ -156,11 +132,8 @@ TEST_SUITE("travel practical") {
     };
     valid::TravelPractical tp;
 
-    CHECK(tp.CheckInsertion(sched, digital));
-    sched.AddSection(digital);
-    CHECK_FALSE(tp.CheckInsertion(sched, ioe));
-    sched.AddSection(ioe);
-    CHECK_FALSE(valid::TravelPractical()(sched));
+    CHECK(tp.CheckedInsert(sched, digital));
+    CHECK_FALSE(tp.CheckedInsert(sched, ioe));
   }
 
 TEST_CASE("hill-to-Ross with no gap is not practical") {
@@ -179,13 +152,9 @@ TEST_CASE("hill-to-Ross with no gap is not practical") {
   };
   valid::TravelPractical tp;
 
-  CHECK(tp.CheckInsertion(sched, pubHealth));
-  sched.AddSection(pubHealth);
-  CHECK(tp.CheckInsertion(sched, lifeScience));
-  sched.AddSection(lifeScience);
-  CHECK_FALSE(tp.CheckInsertion(sched, bus));
-  sched.AddSection(bus);
-  CHECK_FALSE(valid::TravelPractical()(sched));
+  CHECK(tp.CheckedInsert(sched, pubHealth));
+  CHECK(tp.CheckedInsert(sched, lifeScience));
+  CHECK_FALSE(tp.CheckedInsert(sched, bus));
 }
 
 }

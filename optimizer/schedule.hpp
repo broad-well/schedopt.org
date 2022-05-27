@@ -95,7 +95,11 @@ class Schedule {
 
   std::uint8_t Size() const { return size; }
 
-  std::vector<TimeBlock const *> const &BlocksOnDay(std::uint8_t day) const {
+  std::vector<TimeBlock const *> const& BlocksOnDay(std::uint8_t day) const {
+    return blocksByDay.at(day);
+  }
+
+  std::vector<TimeBlock const *> &BlocksOnDay(std::uint8_t day) {
     return blocksByDay[day];
   }
 };
