@@ -78,7 +78,13 @@ class Schedule {
   void AddSection(ClassSection const &section) {
     using namespace std;
     ++size;
-    for (const auto &blk : section.blocks) {
+    InsertBlocks(section.blocks);
+  }
+
+  // TODO test
+  template<typename Col>
+  void InsertBlocks(Col const &blocks) {
+    for (const auto &blk : blocks) {
       auto days{blk.days};
       for (int i = kNumWeekdays - 1; i >= 0; --i, days >>= 1) {
         if (days & 1) {
@@ -93,7 +99,7 @@ class Schedule {
     }
   }
 
-  std::uint8_t Size() const { return size; }
+  std::uint8_t NumSections() const { return size; }
 
   std::vector<TimeBlock const *> const& BlocksOnDay(std::uint8_t day) const {
     return blocksByDay.at(day);

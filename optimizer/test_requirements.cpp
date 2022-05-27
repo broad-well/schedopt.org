@@ -31,8 +31,11 @@ TEST_SUITE("schedule requirements") {
       Schedule sched;
       req::EarliestClass ec{{8, 0}};
 
+      CHECK(ec.CheckSection(stats250_204));
       CHECK(ec.CheckedInsert(sched, stats250_204));
+      CHECK(ec.CheckSection(math116_023));
       CHECK(ec.CheckedInsert(sched, math116_023));
+      CHECK(ec.CheckSection(eecs183_001));
       CHECK(ec.CheckedInsert(sched, eecs183_001));
       CHECK(ec(sched));
     }
@@ -41,8 +44,11 @@ TEST_SUITE("schedule requirements") {
       Schedule sched;
       req::EarliestClass ec{{8, 30}};
 
+      CHECK(ec.CheckSection(stats250_204));
       CHECK(ec.CheckedInsert(sched, stats250_204));
+      CHECK(ec.CheckSection(math116_023));
       CHECK(ec.CheckedInsert(sched, math116_023));
+      CHECK(ec.CheckSection(eecs183_001));
       CHECK(ec.CheckedInsert(sched, eecs183_001));
       CHECK(ec(sched));
     }
@@ -53,6 +59,7 @@ TEST_SUITE("schedule requirements") {
 
       CHECK(ec.CheckedInsert(sched, stats250_204));
       CHECK(ec.CheckedInsert(sched, math116_023));
+      CHECK_FALSE(ec.CheckSection(eecs183_001));
       CHECK_FALSE(ec.CheckedInsert(sched, eecs183_001));
     }
 
@@ -63,6 +70,14 @@ TEST_SUITE("schedule requirements") {
       CHECK(ec.CheckedInsert(sched, stats250_204));
       CHECK(ec.CheckedInsert(sched, math116_023));
       CHECK(ec(sched));
+    }
+
+    TEST_CASE("CheckSection rejects sections with time blocks extending before the limit") {
+      req::EarliestClass ec{{12, 0}};
+
+      CHECK(ec.CheckSection(stats250_204));
+      CHECK_FALSE(ec.CheckSection(eecs183_001));
+      CHECK_FALSE(ec.CheckSection(math116_023));
     }
   }
 
@@ -78,8 +93,11 @@ TEST_SUITE("schedule requirements") {
     Schedule sched;
     req::LatestClass lc{{16, 30}};
 
+    CHECK(lc.CheckSection(stats250_204));
     CHECK(lc.CheckedInsert(sched, stats250_204));
+    CHECK(lc.CheckSection(math116_023));
     CHECK(lc.CheckedInsert(sched, math116_023));
+    CHECK(lc.CheckSection(eecs183_001));
     CHECK(lc.CheckedInsert(sched, eecs183_001));
     CHECK(lc(sched));
   }
@@ -88,8 +106,11 @@ TEST_SUITE("schedule requirements") {
     Schedule sched;
     req::LatestClass lc{{16, 0}};
 
+    CHECK(lc.CheckSection(stats250_204));
     CHECK(lc.CheckedInsert(sched, stats250_204));
+    CHECK(lc.CheckSection(math116_023));
     CHECK(lc.CheckedInsert(sched, math116_023));
+    CHECK(lc.CheckSection(eecs183_001));
     CHECK(lc.CheckedInsert(sched, eecs183_001));
     CHECK(lc(sched));
   }
@@ -98,6 +119,7 @@ TEST_SUITE("schedule requirements") {
     Schedule sched;
     req::LatestClass lc{{15, 30}};
 
+    CHECK_FALSE(lc.CheckSection(stats250_204));
     CHECK(lc.CheckedInsert(sched, eecs183_001));
     CHECK(lc.CheckedInsert(sched, math116_023));
     CHECK_FALSE(lc.CheckedInsert(sched, stats250_204));
@@ -109,7 +131,15 @@ TEST_SUITE("schedule requirements") {
 
     CHECK(lc.CheckedInsert(sched, eecs183_001));
     CHECK(lc.CheckedInsert(sched, math116_023));
+    CHECK(lc.CheckSection(eecs183_001));
     CHECK(lc(sched));
+  }
+
+  TEST_CASE("CheckSection rejects sections with time blocks extending past the limit") {
+    req::LatestClass lc{{15, 0}};
+    CHECK(lc.CheckSection(math116_023));
+    CHECK(lc.CheckSection(eecs183_001));
+    CHECK_FALSE(lc.CheckSection(stats250_204));
   }
   }
 
@@ -138,8 +168,25 @@ TEST_SUITE("schedule requirements") {
           {{{9, 30}, {10, 30}}, {}, 0b1010101}
       };
 
+      CHECK(reserve.CheckSection(eecs183_001));
       CHECK(reserve.CheckInsertion(sched, eecs183_001));
       sched.AddSection(eecs183_001);
+      CHECK(reserve(sched));
+    }
+
+    TEST_CASE("light schedule satisfies requirement with blocks of non-overlapping times") {
+      req::ReservedBlocks reserve{
+        {{{{16, 30}, {18, 0}}, {}, 0b1110010}}
+      };
+      Schedule sched;
+
+      CHECK(reserve.CheckSection(stats250_204));
+      CHECK(reserve.CheckedInsert(sched, stats250_204));
+      CHECK(reserve.CheckSection(eecs183_001));
+      CHECK(reserve.CheckInsertion(sched, eecs183_001));
+      sched.AddSection(eecs183_001);
+      CHECK(reserve.CheckSection(math116_023));
+      sched.AddSection(math116_023);
       CHECK(reserve(sched));
     }
 
@@ -149,10 +196,32 @@ TEST_SUITE("schedule requirements") {
           {{{9, 30}, {10, 30}}, {}, 0b0001001}
       };
 
+      CHECK_FALSE(reserve.CheckSection(eecs183_001));
       CHECK_FALSE(reserve.CheckInsertion(sched, eecs183_001));
       sched.AddSection(eecs183_001);
       CHECK_FALSE(reserve(sched));
-      // implementation: should avoid repetition of NoTimeConflicts
+    }
+
+    TEST_CASE("full schedule violates requirement where only the last block has conflicts") {
+      Schedule sched;
+      req::ReservedBlocks reserve{
+          {{{9, 0}, {10, 30}}, {}, 0b0010111},
+          {{{17, 0}, {18, 0}}, {}, 0b0001000},
+          {{{11, 0}, {12, 0}}, {}, 0b0000100}
+      };
+      CHECK(reserve.CheckSection(eecs183_001));
+      CHECK(reserve.CheckInsertion(sched, eecs183_001));
+      sched.AddSection(eecs183_001);
+      CHECK_FALSE(reserve.CheckInsertion(sched, math116_023));
+      CHECK_FALSE(reserve.CheckedInsert(sched, math116_023));
+      CHECK_FALSE(reserve.CheckSection(math116_023));
+      CHECK(reserve.CheckSection(stats250_204));
+      CHECK(reserve.CheckedInsert(sched, stats250_204));
+      CHECK(reserve(sched));
+      sched.AddSection(math116_023);
+      CHECK_FALSE(reserve(sched));
     }
   }
+
+  TEST_SUITE()
 }
