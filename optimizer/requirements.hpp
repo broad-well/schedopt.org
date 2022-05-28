@@ -4,33 +4,21 @@
 #include "validators.hpp"
 #include <algorithm>
 
-class Requirement : public Validator {
-public:
-  virtual bool CheckSection(ClassSection const &sect) const { return true; }
+// PreRequirements evaluate class sections, not schedules.
+// If a requirement is violated by some schedule iff there is a section in that
+// schedule that violates the requirement in any schedule, it is optimized to
+// become a PreRequirement, which is used to prune the search space of section
+// clusters *before* beginning the search.
+class PreRequirement {
+  virtual bool CheckSection(ClassSection const &sect) const = 0;
 };
 
 namespace req {
 
-struct EarliestClass : public Requirement {
+struct EarliestClass : public PreRequirement {
   Time const limit;
 
   explicit EarliestClass(Time const t) : limit(t) {}
-
-  bool operator()(Schedule const &sched) const override {
-    using namespace std;
-    for (uint8_t day = 0; day < kNumWeekdays; ++day) {
-      auto const &blocks = sched.BlocksOnDay(day);
-      if (!blocks.empty() && blocks.front()->start < limit) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  bool CheckInsertion(Schedule const &sched,
-                      ClassSection const &sect) const override {
-    return CheckSection(sect);
-  }
 
   bool CheckSection(ClassSection const &sect) const override {
     using namespace std;
@@ -39,26 +27,10 @@ struct EarliestClass : public Requirement {
   }
 };
 
-struct LatestClass : public Requirement {
+struct LatestClass : public PreRequirement {
   Time const limit;
 
   explicit LatestClass(Time const t) : limit(t) {}
-
-  bool operator()(Schedule const &sched) const override {
-    using namespace std;
-    for (uint8_t day = 0; day < kNumWeekdays; ++day) {
-      auto const &blocks = sched.BlocksOnDay(day);
-      if (!blocks.empty() && limit < blocks.back()->end) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  bool CheckInsertion(Schedule const &sched,
-                      ClassSection const &sect) const override {
-    return CheckSection(sect);
-  }
 
   bool CheckSection(ClassSection const &sect) const override {
     using namespace std;
@@ -71,17 +43,11 @@ struct LatestClass : public Requirement {
 // with the reserved blocks
 //
 // Insert all reserved blocks into an empty schedule, then proceed with search
-struct ReservedBlocks : public Requirement {
+struct ReservedBlocks : public PreRequirement {
   std::vector<TimeBlock> const reserved;
   valid::NoTimeConflicts ntc;
 
   ReservedBlocks(std::initializer_list<TimeBlock> list) : reserved(list) {}
-
-  bool operator()(Schedule const &sched) const override {
-    Schedule schedCopy(sched);
-    schedCopy.InsertBlocks(reserved);
-    return ntc(schedCopy);
-  }
 
   // O(n^2) technically, but O(1) average in practice; number of blocks per
   // section is almost always < 3
@@ -97,7 +63,7 @@ struct ReservedBlocks : public Requirement {
   }
 };
 
-struct ProhibitedInstructors : public Requirement {
+struct ProhibitedInstructors : public PreRequirement {
   // most blocklists have <5 elements
   // average overhead of following tree node pointers probably as great as 4
   // comparisons (cache locality) therefore also to conserve space, vector used
@@ -120,18 +86,6 @@ struct ProhibitedInstructors : public Requirement {
     return std::find_first_of(std::begin(inst), std::end(inst),
                               std::begin(blocklist),
                               std::end(blocklist)) == std::end(inst);
-  }
-
-  bool operator()(Schedule const &sched) const override {
-    for (std::uint8_t i = 0; i < kNumWeekdays; ++i) {
-      for (auto const block : sched.BlocksOnDay(i)) {
-        auto const klass = dynamic_cast<ClassBlock const *>(block);
-        if (klass != nullptr && !CheckSection(klass->section)) {
-          return false;
-        }
-      }
-    }
-    return true;
   }
 };
 } // namespace req
