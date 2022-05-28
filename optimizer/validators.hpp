@@ -76,7 +76,10 @@ class TravelPractical: public Validator {
       auto it1 = begin(blocks), it2 = it1;
       if (it2 != end(blocks)) ++it2;
       while (it2 != end(blocks)) {
-        if (!travel_practical_from_to(**it1, **it2)) return false;
+        auto const* block1 = dynamic_cast<ClassBlock const*>(*it1),
+                   *block2 = dynamic_cast<ClassBlock const*>(*it2);
+        if (block1 != nullptr && block2 != nullptr &&
+            !travel_practical_from_to(*block1, *block2)) return false;
         ++it1;
         ++it2;
       }
@@ -97,10 +100,12 @@ class TravelPractical: public Validator {
           if (insPos != begin(blocksOnDay)) {
             auto prevBlock = insPos;
             --prevBlock;
-            if (!travel_practical_from_to(**prevBlock, blk)) return false;
+            auto *prevClass = dynamic_cast<ClassBlock const*>(*prevBlock);
+            if (prevClass != nullptr && !travel_practical_from_to(*prevClass, blk)) return false;
           }
           if (insPos != end(blocksOnDay)) {
-            if (!travel_practical_from_to(blk, **insPos)) return false;
+            auto *nextClass = dynamic_cast<ClassBlock const*>(*insPos);
+            if (nextClass != nullptr && !travel_practical_from_to(blk, *nextClass)) return false;
           }
         }
       }
@@ -108,7 +113,7 @@ class TravelPractical: public Validator {
     return true;
   }
  private:
-  static inline bool travel_practical_from_to(TimeBlock const& b1, TimeBlock const& b2) {
+  static inline bool travel_practical_from_to(ClassBlock const& b1, ClassBlock const& b2) {
     double dist = MetersBetween(b1, b2);
     auto interval = b1.start - b2.end;
     return dist <= 1000 || interval > 10;

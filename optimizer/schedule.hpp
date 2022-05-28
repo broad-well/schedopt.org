@@ -30,27 +30,43 @@ struct Time {
 };
 
 struct Interval {
-  Time const start;
-  Time const end;
+  Time start;
+  Time end;
 
-  bool OverlapsWith(Interval const& other) const {
+  Interval(Time start, Time end): start(start), end(end) {}
+
+  virtual bool OverlapsWith(Interval const& other) const {
     return other.start < end && start < other.end;
   }
 };
 
-struct TimeBlock: public Interval {
-  std::optional<boost::geometry::model::point<double, 2, boost::geometry::cs::geographic<boost::geometry::degree>>>
-      location;
+struct TimeBlock: virtual Interval {
   // Most significant bit is Monday
   // Example: 0b10000 is Monday only
   std::uint8_t days{};
+
+  TimeBlock(Time from, Time to, std::uint8_t days): Interval(from, to), days(days) {};
 
   bool operator<(TimeBlock const &other) const {
     return start < other.start;
   }
 };
 
-double MetersBetween(TimeBlock const &from, TimeBlock const &to) {
+struct ClassSection;
+
+struct ClassBlock: virtual TimeBlock {
+  std::optional<boost::geometry::model::point<double, 2, boost::geometry::cs::geographic<boost::geometry::degree>>>
+      location;
+  ClassSection const& section;
+
+  ClassBlock(Time from, Time to, std::uint8_t days, decltype(location)&& loc, ClassSection const& section):
+    Interval(from, to), TimeBlock(from, to, days), location{loc}, section{section} {}
+
+  // Each TimeBlock should exist only once in memory
+  // Do not copy-construct or copy-assign (except to construct them in tests)
+};
+
+double MetersBetween(ClassBlock const &from, ClassBlock const &to) {
   if (!from.location.has_value() || !to.location.has_value()) return 0;
   constexpr double kEarthRadius = 6371.0;
   return 1000 * kEarthRadius
@@ -60,7 +76,7 @@ double MetersBetween(TimeBlock const &from, TimeBlock const &to) {
 }
 
 struct ClassSection {
-  std::vector<TimeBlock> blocks;
+  std::vector<ClassBlock> blocks;
   std::vector<std::string> instructors;
   char type[4];
   std::uint32_t classNum;

@@ -11,6 +11,7 @@ find_package(Boost CONFIG REQUIRED)
 #target_compile_options(main PRIVATE "-Wall" "-Wextra")
 #
 #aws_lambda_package_target(main)
+set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -march=native -ffast-math")
 
 add_executable(test_validator "test_validators.cpp")
 target_link_libraries(test_validator PRIVATE doctest::doctest Boost::boost)
