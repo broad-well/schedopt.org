@@ -1,17 +1,17 @@
 #pragma once
-#include <utility>
-#include <cstdint>
 #include <bitset>
-#include <string>
-#include <vector>
 #include <boost/geometry.hpp>
+#include <cstdint>
 #include <optional>
+#include <string>
+#include <utility>
+#include <vector>
 
 constexpr int kNumWeekdays = 7;
 
 struct Time {
-  std::uint8_t const hour;
-  std::uint8_t const minute;
+  std::uint8_t hour;
+  std::uint8_t minute;
 
   inline auto operator<(Time const other) const {
     return minutes_since_midnight() < other.minutes_since_midnight();
@@ -20,12 +20,14 @@ struct Time {
     return minutes_since_midnight() == other.minutes_since_midnight();
   }
   inline signed short operator-(Time const other) const {
-    return static_cast<signed short>(minutes_since_midnight()) - static_cast<signed short>(other.minutes_since_midnight());
+    return static_cast<signed short>(minutes_since_midnight()) -
+           static_cast<signed short>(other.minutes_since_midnight());
   }
 
- private:
+private:
   inline unsigned short minutes_since_midnight() const {
-    return static_cast<unsigned short>(hour) * 60 + static_cast<unsigned short>(minute);
+    return static_cast<unsigned short>(hour) * 60 +
+           static_cast<unsigned short>(minute);
   }
 };
 
@@ -33,50 +35,81 @@ struct Interval {
   Time start;
   Time end;
 
-  Interval(Time start, Time end): start(start), end(end) {}
+  Interval(Time start, Time end) : start(start), end(end) {}
 
-  virtual bool OverlapsWith(Interval const& other) const {
+  virtual bool OverlapsWith(Interval const &other) const {
     return other.start < end && start < other.end;
-  }
-};
-
-struct TimeBlock: virtual Interval {
-  // Most significant bit is Monday
-  // Example: 0b10000 is Monday only
-  std::uint8_t days{};
-
-  TimeBlock(Time from, Time to, std::uint8_t days): Interval(from, to), days(days) {};
-
-  bool operator<(TimeBlock const &other) const {
-    return start < other.start;
   }
 };
 
 struct ClassSection;
 
-struct ClassBlock: virtual TimeBlock {
-  std::optional<boost::geometry::model::point<double, 2, boost::geometry::cs::geographic<boost::geometry::degree>>>
+struct ClassBlockDetails {
+  std::optional<boost::geometry::model::point<
+      double, 2, boost::geometry::cs::geographic<boost::geometry::degree>>>
       location;
-  ClassSection const& section;
+  ClassSection const &section;
+};
 
-  ClassBlock(Time from, Time to, std::uint8_t days, decltype(location)&& loc, ClassSection const& section):
-    Interval(from, to), TimeBlock(from, to, days), location{loc}, section{section} {}
+struct TimeBlock {
+  Interval interval;
+  // Most significant bit is Monday
+  // Example: 0b10000 is Monday only
+  std::uint8_t days{};
+  ClassBlockDetails const *details = nullptr;
+
+  TimeBlock(Time from, Time to, std::uint8_t days)
+      : interval(from, to), days(days){};
+
+  // In C++20 we would use make_unique with aggregate initialization
+  TimeBlock(Time from, Time to, std::uint8_t days,
+            decltype(details->location) location, ClassSection const &section)
+      : interval(from, to), days(days),
+        details(new ClassBlockDetails{location, section}) {}
+
+  TimeBlock(TimeBlock const &o)
+      : interval(o.interval), days(o.days),
+        details(o.details == nullptr ? nullptr
+                                     : new ClassBlockDetails(*o.details)) {}
+
+  // TODO test
+  TimeBlock &operator=(TimeBlock const &o) {
+    if (&o == this) return *this;
+    TimeBlock temp(o);
+    interval = temp.interval;
+    days = temp.days;
+    std::swap(details, temp.details);
+    return *this;
+  }
+
+  ~TimeBlock() { delete details; }
+
+  bool operator<(TimeBlock const &other) const {
+    return interval.start < other.interval.start;
+  }
+
+  Time Start() const { return interval.start; }
+  Time End() const { return interval.end; }
+
+  bool IsClass() const { return details != nullptr; }
 
   // Each TimeBlock should exist only once in memory
   // Do not copy-construct or copy-assign (except to construct them in tests)
 };
 
-double MetersBetween(ClassBlock const &from, ClassBlock const &to) {
-  if (!from.location.has_value() || !to.location.has_value()) return 0;
+double MetersBetween(TimeBlock const &from, TimeBlock const &to) {
+  if (!from.IsClass() || !from.details->location.has_value() || !to.IsClass() ||
+      !to.details->location.has_value())
+    return 0;
   constexpr double kEarthRadius = 6371.0;
-  return 1000 * kEarthRadius
-      * boost::geometry::distance(from.location.value(),
-                                  to.location.value(),
-                                  boost::geometry::strategy::distance::haversine());
+  return 1000 * kEarthRadius *
+         boost::geometry::distance(
+             from.details->location.value(), to.details->location.value(),
+             boost::geometry::strategy::distance::haversine());
 }
 
 struct ClassSection {
-  std::vector<ClassBlock> blocks;
+  std::vector<TimeBlock> blocks;
   std::vector<std::string> instructors;
   char type[4];
   std::uint32_t classNum;
@@ -90,7 +123,7 @@ class Schedule {
   std::array<std::vector<TimeBlock const *>, 7> blocksByDay;
   std::uint8_t size = 0;
 
- public:
+public:
   void AddSection(ClassSection const &section) {
     using namespace std;
     ++size;
@@ -98,18 +131,15 @@ class Schedule {
   }
 
   // TODO test
-  template<typename Col>
-  void InsertBlocks(Col const &blocks) {
+  template <typename Col> void InsertBlocks(Col const &blocks) {
     for (const auto &blk : blocks) {
       auto days{blk.days};
       for (int i = kNumWeekdays - 1; i >= 0; --i, days >>= 1) {
         if (days & 1) {
-          blocksByDay[i].insert(lower_bound(begin(blocksByDay[i]),
-                                            end(blocksByDay[i]),
-                                            blk,
-                                            [](auto const a, auto const &b) {
-                                              return *a < b;
-                                            }), &blk);
+          blocksByDay[i].insert(
+              lower_bound(begin(blocksByDay[i]), end(blocksByDay[i]), blk,
+                          [](auto const a, auto const &b) { return *a < b; }),
+              &blk);
         }
       }
     }
@@ -117,7 +147,7 @@ class Schedule {
 
   std::uint8_t NumSections() const { return size; }
 
-  std::vector<TimeBlock const *> const& BlocksOnDay(std::uint8_t day) const {
+  std::vector<TimeBlock const *> const &BlocksOnDay(std::uint8_t day) const {
     return blocksByDay.at(day);
   }
 
@@ -125,5 +155,3 @@ class Schedule {
     return blocksByDay[day];
   }
 };
-
-static_assert(sizeof(Schedule) < 193);

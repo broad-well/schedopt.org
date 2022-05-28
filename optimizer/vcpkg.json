@@ -1,0 +1,7 @@
+{
+  "name": "schedopt-optimizer",
+  "version-string": "0.0.1",
+  "dependencies": [
+    "doctest", "boost-geometry"
+  ]
+}

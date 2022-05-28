@@ -34,7 +34,7 @@ public:
       if (it1 != std::end(blocks)) {
         ++it2;
         for (; it2 != std::end(blocks); ++it1, ++it2) {
-          if ((*it1)->OverlapsWith(**it2)) {
+          if ((*it1)->interval.OverlapsWith((*it2)->interval)) {
             return false;
           }
         }
@@ -54,15 +54,15 @@ public:
               sched.BlocksOnDay(static_cast<std::uint8_t>(d));
           auto insPos = lower_bound(
               begin(blocksOnDay), end(blocksOnDay), &blk,
-              [](auto const a, auto const b) { return a->start < b->start; });
+              [](auto const a, auto const b) { return a->Start() < b->Start(); });
           if (insPos != begin(blocksOnDay)) {
             auto prevBlock = insPos;
             --prevBlock;
-            if ((*prevBlock)->OverlapsWith(blk))
+            if ((*prevBlock)->interval.OverlapsWith(blk.interval))
               return false;
           }
           if (insPos != end(blocksOnDay)) {
-            if ((*insPos)->OverlapsWith(blk))
+            if ((*insPos)->interval.OverlapsWith(blk.interval))
               return false;
           }
         }
@@ -82,10 +82,7 @@ public:
       if (it2 != end(blocks))
         ++it2;
       while (it2 != end(blocks)) {
-        auto const *block1 = dynamic_cast<ClassBlock const *>(*it1),
-                   *block2 = dynamic_cast<ClassBlock const *>(*it2);
-        if (block1 != nullptr && block2 != nullptr &&
-            !travel_practical_from_to(*block1, *block2))
+        if (!travel_practical_from_to(**it1, **it2))
           return false;
         ++it1;
         ++it2;
@@ -105,19 +102,15 @@ public:
               sched.BlocksOnDay(static_cast<std::uint8_t>(d));
           auto insPos = lower_bound(
               begin(blocksOnDay), end(blocksOnDay), &blk,
-              [](auto const a, auto const b) { return a->start < b->start; });
+              [](auto const a, auto const b) { return a->Start() < b->Start(); });
           if (insPos != begin(blocksOnDay)) {
             auto prevBlock = insPos;
             --prevBlock;
-            auto *prevClass = dynamic_cast<ClassBlock const *>(*prevBlock);
-            if (prevClass != nullptr &&
-                !travel_practical_from_to(*prevClass, blk))
+            if (!travel_practical_from_to(**prevBlock, blk))
               return false;
           }
           if (insPos != end(blocksOnDay)) {
-            auto *nextClass = dynamic_cast<ClassBlock const *>(*insPos);
-            if (nextClass != nullptr &&
-                !travel_practical_from_to(blk, *nextClass))
+            if (!travel_practical_from_to(blk, **insPos))
               return false;
           }
         }
@@ -127,10 +120,10 @@ public:
   }
 
 private:
-  static inline bool travel_practical_from_to(ClassBlock const &b1,
-                                              ClassBlock const &b2) {
+  static inline bool travel_practical_from_to(TimeBlock const &b1,
+                                              TimeBlock const &b2) {
     double dist = MetersBetween(b1, b2);
-    auto interval = b1.start - b2.end;
+    auto interval = b1.Start() - b2.End();
     return dist <= 1000 || interval > 10;
   }
 };

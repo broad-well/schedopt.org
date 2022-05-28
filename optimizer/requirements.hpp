@@ -23,7 +23,7 @@ struct EarliestClass : public PreRequirement {
   bool CheckSection(ClassSection const &sect) const override {
     using namespace std;
     return all_of(begin(sect.blocks), end(sect.blocks),
-                  [this](auto const &block) { return !(block.start < limit); });
+                  [this](auto const &block) { return !(block.Start() < limit); });
   }
 };
 
@@ -35,7 +35,7 @@ struct LatestClass : public PreRequirement {
   bool CheckSection(ClassSection const &sect) const override {
     using namespace std;
     return all_of(begin(sect.blocks), end(sect.blocks),
-                  [this](auto const &block) { return !(limit < block.end); });
+                  [this](auto const &block) { return !(limit < block.End()); });
   }
 };
 
@@ -54,7 +54,7 @@ struct ReservedBlocks : public PreRequirement {
   bool CheckSection(ClassSection const &sect) const override {
     for (const auto &block : sect.blocks) {
       for (const auto &reserve : reserved) {
-        if (block.OverlapsWith(reserve) && (block.days & reserve.days) > 0) {
+        if (block.interval.OverlapsWith(reserve.interval) && (block.days & reserve.days) > 0) {
           return false;
         }
       }
