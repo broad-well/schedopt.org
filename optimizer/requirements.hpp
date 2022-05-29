@@ -22,8 +22,9 @@ struct EarliestClass : public PreRequirement {
 
   bool CheckSection(ClassSection const &sect) const override {
     using namespace std;
-    return all_of(begin(sect.blocks), end(sect.blocks),
-                  [this](auto const &block) { return !(block.Start() < limit); });
+    return all_of(
+        begin(sect.blocks), end(sect.blocks),
+        [this](auto const &block) { return !(block.Start() < limit); });
   }
 };
 
@@ -54,7 +55,8 @@ struct ReservedBlocks : public PreRequirement {
   bool CheckSection(ClassSection const &sect) const override {
     for (const auto &block : sect.blocks) {
       for (const auto &reserve : reserved) {
-        if (block.interval.OverlapsWith(reserve.interval) && (block.days & reserve.days) > 0) {
+        if (block.interval.OverlapsWith(reserve.interval) &&
+            (block.days & reserve.days) > 0) {
           return false;
         }
       }
@@ -88,4 +90,42 @@ struct ProhibitedInstructors : public PreRequirement {
                               std::end(blocklist)) == std::end(inst);
   }
 };
+
+struct MealBreak : public Validator {
+  Interval timeframe;
+  std::uint16_t break_minutes;
+
+  MealBreak(Interval const timeframe = {{10, 30}, {14, 30}},
+            std::uint16_t break_minutes = 45)
+      : timeframe(timeframe), break_minutes(break_minutes) {}
+
+  bool operator()(Schedule const& sched) const override {
+    using namespace std;
+    for (uint8_t day = 0; day < kNumWeekdays; ++day) {
+      Time gap_start {0, 0};
+      bool ok_gap_found = false;
+      
+      for (auto const block: sched.BlocksOnDay(day)) {
+        // default: it's okay to eat during reserved blocks
+        if (block->IsClass()) {
+          Interval gap {gap_start, block->Start()};
+          if (gap.end - gap.start > 0 and gap.OverlapsWith(timeframe)) {
+            auto mins_overlap = min(timeframe.end, gap.end) - max(timeframe.start, gap.start);
+            if (abs(mins_overlap) >= break_minutes) {
+              // this day has an eligible break
+              ok_gap_found = true;
+              break;
+            }
+          }
+          gap_start = block->End();
+        }
+      }
+      if (not ok_gap_found and timeframe.end - gap_start < static_cast<short>(break_minutes)) {
+        return false;
+      }
+    }
+    return true;
+  }
+};
+
 } // namespace req

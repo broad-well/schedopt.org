@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.9)
 set(CMAKE_CXX_STANDARD 17)
 project(schedopt-optimizer LANGUAGES CXX)
-find_package(aws-lambda-runtime CONFIG REQUIRED)
+# find_package(aws-lambda-runtime CONFIG REQUIRED)
 find_package(doctest CONFIG REQUIRED)
-find_package(Boost CONFIG REQUIRED)
+find_package(Boost REQUIRED)
 
 #add_executable(main "main.cpp")
 #target_link_libraries(main PRIVATE AWS::aws-lambda-runtime)

@@ -37,7 +37,7 @@ struct Interval {
 
   Interval(Time start, Time end) : start(start), end(end) {}
 
-  virtual bool OverlapsWith(Interval const &other) const {
+  bool OverlapsWith(Interval const &other) const {
     return other.start < end && start < other.end;
   }
 };
@@ -97,7 +97,7 @@ struct TimeBlock {
   // Do not copy-construct or copy-assign (except to construct them in tests)
 };
 
-double MetersBetween(TimeBlock const &from, TimeBlock const &to) {
+inline double MetersBetween(TimeBlock const &from, TimeBlock const &to) {
   if (!from.IsClass() || !from.details->location.has_value() || !to.IsClass() ||
       !to.details->location.has_value())
     return 0;
