@@ -103,6 +103,7 @@ struct MealBreak : public Validator {
     using namespace std;
     for (uint8_t day = 0; day < kNumWeekdays; ++day) {
       Time gap_start {0, 0};
+      optional<LatLong> gap_origin;
       bool ok_gap_found = false;
       
       for (auto const block: sched.BlocksOnDay(day)) {
@@ -110,22 +111,32 @@ struct MealBreak : public Validator {
         if (block->IsClass()) {
           Interval gap {gap_start, block->Start()};
           if (gap.end - gap.start > 0 and gap.OverlapsWith(timeframe)) {
-            auto mins_overlap = min(timeframe.end, gap.end) - max(timeframe.start, gap.start);
-            if (abs(mins_overlap) >= break_minutes) {
+            short mins_overlap = abs(min(timeframe.end, gap.end) - max(timeframe.start, gap.start));
+            short contiguous_mins_outside = max(max(short{0}, timeframe.start - gap.start), gap.end - timeframe.end);
+            if (gap_origin.has_value() and block->details->location.has_value() and travel_intensive(gap_origin.value(), block->details->location.value())) {
+              // avg 15 mins taken to travel intensively (walking or by bus)
+              contiguous_mins_outside -= 15;
+              if (contiguous_mins_outside < 0) mins_overlap += contiguous_mins_outside;
+            }
+            if (mins_overlap >= break_minutes) {
               // this day has an eligible break
               ok_gap_found = true;
               break;
             }
           }
           gap_start = block->End();
+          gap_origin = block->details->location;
         }
       }
+      // BUG timeframe ends really early (00:30)
       if (not ok_gap_found and timeframe.end - gap_start < static_cast<short>(break_minutes)) {
         return false;
       }
     }
     return true;
   }
+
+  // Still need to optimize CheckInsertion
 };
 
 } // namespace req

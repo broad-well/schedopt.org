@@ -44,10 +44,11 @@ struct Interval {
 
 struct ClassSection;
 
+using LatLong = boost::geometry::model::point<
+      double, 2, boost::geometry::cs::geographic<boost::geometry::degree>>;
+
 struct ClassBlockDetails {
-  std::optional<boost::geometry::model::point<
-      double, 2, boost::geometry::cs::geographic<boost::geometry::degree>>>
-      location;
+  std::optional<LatLong> location;
   ClassSection const &section;
 };
 
@@ -97,15 +98,17 @@ struct TimeBlock {
   // Do not copy-construct or copy-assign (except to construct them in tests)
 };
 
+inline double MetersBetween(LatLong const& p1, LatLong const& p2) {
+  constexpr double kEarthRadius = 6371.0;
+  return 1000 * kEarthRadius *
+         boost::geometry::distance(p1, p2, boost::geometry::strategy::distance::haversine());
+}
+
 inline double MetersBetween(TimeBlock const &from, TimeBlock const &to) {
   if (!from.IsClass() || !from.details->location.has_value() || !to.IsClass() ||
       !to.details->location.has_value())
     return 0;
-  constexpr double kEarthRadius = 6371.0;
-  return 1000 * kEarthRadius *
-         boost::geometry::distance(
-             from.details->location.value(), to.details->location.value(),
-             boost::geometry::strategy::distance::haversine());
+  return MetersBetween(from.details->location.value(), to.details->location.value());
 }
 
 struct ClassSection {
