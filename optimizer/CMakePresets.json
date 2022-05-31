@@ -1,0 +1,38 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "make-vcpkg",
+      "displayName": "Makefiles",
+      "description": "Configure with vcpkg and generate Makefile project files",
+      "binaryDir": "${sourceDir}/build",
+      "generator": "Unix Makefiles",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": {
+          "type": "FILEPATH",
+          "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        }
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "make",
+      "configurePreset": "make-vcpkg",
+      "displayName": "Build make-vcpkg",
+      "configuration": "Debug"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "make",
+      "configurePreset": "make-vcpkg",
+      "configuration": "Debug"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+name: optimizer-tests
+on: push
+
+jobs:
+  job:
+    name: test-optimizer
+    runs-on: ubuntu-latest
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/optimizer/vcpkg
+      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg/bincache
+    steps:
+      - uses: actions/checkout@v2
+      - name: 'Create binary cache directory'
+        run: mkdir -p $VCPKG_DEFAULT_BINARY_CACHE
+        shell: bash
+      - uses: lukka/get-cmake@latest
+      - name: Set up vcpkg artifacts
+        uses: lukka/run-vcpkg@v10
+        id: runvcpkg
+        with:
+          vcpkgJsonGlob: 'optimizer/vcpkg.json'
+          vcpkgGitCommitId: 'd953973cfbfeaf8022f5219fbabb0bdf9defb706'
+      - name: Run CMake to test
+        uses: lukka/run-cmake@v10
+        id: runcmake
+        with:
+          cmakeListsTxtPath: ${{ github.workspace }}/optimizer/CMakeLists.txt
+          configurePreset: 'make-vcpkg'
+          buildPreset: 'make'
+          testPreset: 'make'
