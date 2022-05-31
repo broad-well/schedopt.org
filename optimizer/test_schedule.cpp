@@ -54,8 +54,9 @@ TEST_CASE("e-f,c-e") {
 
 TEST_SUITE("distance between blocks") {
 TEST_CASE("example across campus") {
-  TimeBlock cccb{{{10, 0}, {11, 0}}, {{-83.734924, 42.278301}}, 0b0101000};
-  TimeBlock beyster{{{11, 30}, {12, 30}}, {{-83.716257, 42.292781}}, 0b1010000};
+  ClassSection sect{};
+  TimeBlock cccb({10, 0}, {11, 0}, 0b0101000, {{-83.734924, 42.278301}}, sect);
+  TimeBlock beyster({11, 30}, {12, 30}, 0b1010000, {{-83.716257, 42.292781}}, sect);
   CHECK_LT(abs(MetersBetween(cccb, beyster) - 2220), 5);
 }
 }
@@ -63,21 +64,23 @@ TEST_CASE("example across campus") {
 TEST_SUITE("adding sections to schedule copies") {
 TEST_CASE("adding section to copy doesn't add it to original") {
   Schedule sched;
-  ClassSection section{{{{{10, 0}, {11, 30}}, {}, 0b0101000}}, {"inst"}, "LEC", 10423, 003, 4};
+  ClassSection section{
+    {{{10, 0}, {11, 30}, 0b0101000, {}, section}},
+    {"inst"}, "LEC", 10423, 003, 4};
   Schedule sched2(sched);
   sched2.AddSection(section);
-  CHECK_EQ(sched2.Size(), 1);
-  CHECK_EQ(sched.Size(), 0);
+  CHECK_EQ(sched2.NumSections(), 1);
+  CHECK_EQ(sched.NumSections(), 0);
 }
 
 TEST_CASE("adding section populates memo array correctly") {
   Schedule sched;
   ClassSection section{
       {
-          {{{10, 0}, {11, 30}}, {}, 0b1010000},
-          {{{13, 0}, {14, 30}}, {}, 0b0010001},
-          {{{12, 0}, {13, 30}}, {}, 0b1001000},
-          {{{9, 0}, {10, 30}}, {}, 0b0101000}
+          {{10, 0}, {11, 30}, 0b1010000, {}, section},
+          {{13, 0}, {14, 30}, 0b0010001, {}, section},
+          {{12, 0}, {13, 30}, 0b1001000, {}, section},
+          {{9, 0}, {10, 30}, 0b0101000, {}, section}
       },
       {"jjuett"},
       "LEC", 32410, 2, 4
@@ -96,21 +99,21 @@ TEST_CASE("adding section populates memo array correctly") {
 TEST_CASE("adding multiple sections populates memo array correctly") {
   Schedule sched;
   ClassSection section0{
-      {{{{9, 0}, {10, 30}}, {}, 0b0101000}},
+      {{{9, 0}, {10, 30}, 0b0101000, {}, section0}},
       {"jschatz"},
       "LEC", 35521, 1, 4
   };
   ClassSection section1{
       {
-          {{{10, 0}, {11, 30}}, {}, 0b1010000},
-          {{{13, 0}, {14, 30}}, {}, 0b0010001}
+          {{10, 0}, {11, 30}, 0b1010000, {}, section1},
+          {{13, 0}, {14, 30}, 0b0010001, {}, section1}
       },
       {"jjuett"},
       "LEC", 32410, 2, 4
   };
   ClassSection section2{
       {
-          {{{12, 0}, {13, 30}}, {}, 0b1001000}
+          {{12, 0}, {13, 30}, 0b1001000, {}, section2}
       },
       {"jbbeau"},
       "LEC", 34421, 3, 4
@@ -127,6 +130,40 @@ TEST_CASE("adding multiple sections populates memo array correctly") {
   CHECK_EQ(sched.BlocksOnDay(4), Blocks{});
   CHECK_EQ(sched.BlocksOnDay(6), Blocks{&section1.blocks[1]});
 }
+}
+
+TEST_SUITE("TimeBlock big three") {
+  TEST_CASE("copy constructor copies all members and allocates new details object") {
+    ClassSection section;
+    TimeBlock original({10, 0}, {11, 30}, 0b1010000, {}, section);
+    TimeBlock copy(original);
+
+    CHECK_EQ(copy.Start(), original.Start());
+    CHECK_EQ(copy.End(), original.End());
+    CHECK_EQ(copy.days, original.days);
+    CHECK_EQ(copy.details->location.has_value(), original.details->location.has_value());
+    CHECK_EQ(&copy.details->section, &original.details->section);
+    CHECK_NE(copy.details, original.details);
+  }
+
+  TEST_CASE("copy assignment copies all members and allocates new details object") {
+    ClassSection section;
+    TimeBlock block2({11, 0}, {12, 30}, 0b0010100, {}, section);
+    TimeBlock block3({12, 30}, {14, 0}, 0b0101000, {}, section);
+    auto const* details3 = block3.details;
+
+    block3 = block2;
+    CHECK_NE(block3.details, details3);
+    CHECK_NE(block3.details, block2.details);
+    CHECK_EQ(block3.Start(), block2.Start());
+    CHECK_EQ(block3.End(), block2.End());
+    CHECK_EQ(block3.days, block2.days);
+    CHECK_EQ(&block3.details->section, &block2.details->section);
+    details3 = block3.details;
+    block3 = block3;
+    // does not reallocate on self-assignment
+    CHECK_EQ(details3, block3.details);
+  }
 }
 }
 

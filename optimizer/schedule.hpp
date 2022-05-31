@@ -21,13 +21,13 @@ struct Time {
   }
   inline signed short operator-(Time const other) const {
     return static_cast<signed short>(minutes_since_midnight()) -
-           static_cast<signed short>(other.minutes_since_midnight());
+        static_cast<signed short>(other.minutes_since_midnight());
   }
 
-private:
+ private:
   inline unsigned short minutes_since_midnight() const {
     return static_cast<unsigned short>(hour) * 60 +
-           static_cast<unsigned short>(minute);
+        static_cast<unsigned short>(minute);
   }
 };
 
@@ -45,7 +45,7 @@ struct Interval {
 struct ClassSection;
 
 using LatLong = boost::geometry::model::point<
-      double, 2, boost::geometry::cs::geographic<boost::geometry::degree>>;
+    double, 2, boost::geometry::cs::geographic<boost::geometry::degree>>;
 
 struct ClassBlockDetails {
   std::optional<LatLong> location;
@@ -60,7 +60,7 @@ struct TimeBlock {
   ClassBlockDetails const *details = nullptr;
 
   TimeBlock(Time from, Time to, std::uint8_t days)
-      : interval(from, to), days(days){};
+      : interval(from, to), days(days) {};
 
   // In C++20 we would use make_unique with aggregate initialization
   TimeBlock(Time from, Time to, std::uint8_t days,
@@ -73,7 +73,6 @@ struct TimeBlock {
         details(o.details == nullptr ? nullptr
                                      : new ClassBlockDetails(*o.details)) {}
 
-  // TODO test
   TimeBlock &operator=(TimeBlock const &o) {
     if (&o == this) return *this;
     TimeBlock temp(o);
@@ -98,10 +97,10 @@ struct TimeBlock {
   // Do not copy-construct or copy-assign (except to construct them in tests)
 };
 
-inline double MetersBetween(LatLong const& p1, LatLong const& p2) {
+inline double MetersBetween(LatLong const &p1, LatLong const &p2) {
   constexpr double kEarthRadius = 6371.0;
   return 1000 * kEarthRadius *
-         boost::geometry::distance(p1, p2, boost::geometry::strategy::distance::haversine());
+      boost::geometry::distance(p1, p2, boost::geometry::strategy::distance::haversine());
 }
 
 inline double MetersBetween(TimeBlock const &from, TimeBlock const &to) {
@@ -126,7 +125,7 @@ class Schedule {
   std::array<std::vector<TimeBlock const *>, 7> blocksByDay;
   std::uint8_t size = 0;
 
-public:
+ public:
   void AddSection(ClassSection const &section) {
     using namespace std;
     ++size;
@@ -134,7 +133,8 @@ public:
   }
 
   // TODO test
-  template <typename Col> void InsertBlocks(Col const &blocks) {
+  template<typename Col>
+  void InsertBlocks(Col const &blocks) {
     for (const auto &blk : blocks) {
       auto days{blk.days};
       for (int i = kNumWeekdays - 1; i >= 0; --i, days >>= 1) {
