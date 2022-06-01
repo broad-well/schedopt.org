@@ -23,7 +23,11 @@ target_link_libraries(test_validators PRIVATE doctest::doctest Boost::boost)
 add_executable(test_requirements "test_requirements.cpp")
 target_link_libraries(test_requirements PRIVATE doctest::doctest Boost::boost)
 
+add_executable(test_preferences "test_preferences.cpp")
+target_link_libraries(test_preferences PRIVATE doctest::doctest Boost::boost)
+
 enable_testing()
 add_test(test_schedule test_schedule)
 add_test(test_validators test_validators)
 add_test(test_requirements test_requirements)
+add_test(test_preferences test_preferences)

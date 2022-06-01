@@ -95,7 +95,7 @@ struct MealBreak : public Validator {
   Interval timeframe;
   std::uint16_t break_minutes;
 
-  MealBreak(Interval const timeframe = {{10, 30}, {14, 30}},
+  explicit MealBreak(Interval const timeframe = {{10, 30}, {14, 30}},
             std::uint16_t break_minutes = 45)
       : timeframe(timeframe), break_minutes(break_minutes) {}
 

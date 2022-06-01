@@ -130,6 +130,27 @@ TEST_CASE("adding multiple sections populates memo array correctly") {
   CHECK_EQ(sched.BlocksOnDay(4), Blocks{});
   CHECK_EQ(sched.BlocksOnDay(6), Blocks{&section1.blocks[1]});
 }
+
+TEST_CASE("adding non-class time blocks populates memo array correctly") {
+  std::vector<TimeBlock> blocks{
+      {{9, 0}, {10, 30}, 0b0100100},
+      {{14, 0}, {17, 0}, 0b1010010},
+      {{9, 30}, {11, 0}, 0b0010010},
+      {{11, 0}, {12, 0}, 0b1101000},
+      {{10, 30}, {12, 0}, 0b0000101},
+  };
+  Schedule sched;
+  sched.InsertBlocks(blocks);
+  using Blocks = std::vector<TimeBlock const*>;
+
+  CHECK_EQ(sched.BlocksOnDay(0), Blocks{&blocks[3], &blocks[1]});
+  CHECK_EQ(sched.BlocksOnDay(1), Blocks{&blocks[0], &blocks[3]});
+  CHECK_EQ(sched.BlocksOnDay(2), Blocks{&blocks[2], &blocks[1]});
+  CHECK_EQ(sched.BlocksOnDay(3), Blocks{&blocks[3]});
+  CHECK_EQ(sched.BlocksOnDay(4), Blocks{&blocks[0], &blocks[4]});
+  CHECK_EQ(sched.BlocksOnDay(5), Blocks{&blocks[2], &blocks[1]});
+  CHECK_EQ(sched.BlocksOnDay(6), Blocks{&blocks[4]});
+}
 }
 
 TEST_SUITE("TimeBlock big three") {
