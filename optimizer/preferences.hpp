@@ -63,4 +63,52 @@ DEFINE_AVG_DAILY_METRIC_PREF(CompactDays, double, (blocks.back()->End() - blocks
 DEFINE_AVG_DAILY_METRIC_PREF(EarliestTime, Time, blocks.front()->Start())
 DEFINE_AVG_DAILY_METRIC_PREF(LatestTime, Time, blocks.back()->End())
 
+struct PreferredInstructors : public Preference {
+  // invariant: sorted for binary search and all lowercase
+  std::vector<std::string> preferredIds;
+
+  PreferredInstructors(std::initializer_list<std::string> preferred) {
+    using namespace std;
+    preferredIds.reserve(preferred.size());
+    transform(begin(preferred), end(preferred), back_inserter(preferredIds), [](auto const& str) {
+      auto lower = PreferredInstructors::to_lowercase(str);
+      return lower;
+    });
+    sort(begin(preferredIds), end(preferredIds));
+  }
+
+  double operator()(Schedule const &sched) const override {
+    if (preferredIds.empty()) return 0.0;
+    unsigned short match_count{0};
+    std::vector<bool> matches(preferredIds.size(), false);
+    for (std::uint8_t day = 0; day < kNumWeekdays; ++day) {
+      for (auto const block : sched.BlocksOnDay(day)) {
+        if (block->IsClass()) {
+          for (auto const &instr : block->details->section.instructors) {
+            auto lower = to_lowercase(instr);
+            auto target = std::lower_bound(std::begin(preferredIds), std::end(preferredIds), lower);
+            if (target != std::end(preferredIds) and *target == lower) {
+              std::size_t idx = std::distance(std::begin(preferredIds), target);
+              if (not matches[idx]) {
+                ++match_count;
+                matches[idx] = true;
+              }
+            }
+          }
+        }
+      }
+    }
+    return match_count / static_cast<double>(preferredIds.size());
+  }
+
+   private:
+    static std::string to_lowercase(std::string const& str) {
+      using namespace std;
+      string copy;
+      copy.reserve(str.size());
+      transform(begin(str), end(str), back_inserter(copy), [](char c) { return tolower(c); });
+      return copy;
+    }
+};
+
 }

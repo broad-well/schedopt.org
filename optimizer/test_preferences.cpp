@@ -123,17 +123,62 @@ TEST_SUITE("CompactDays") {
     // ratings: 0.1, 0.9, 0.9, 0.9
     // average: 0.7
 
-    CHECK_EQ(cd(sched), 0.7);
+    CHECK_EQ(cd(sched), doctest::Approx(0.7));
   }
 
   TEST_CASE("CompactDays on empty schedule gives 0.5") {
     pref::CompactDays cd{{{3, 0.9}, {5, 0.6}, {7, 0.1}}};
     Schedule empty;
 
-    CHECK_EQ(cd(empty), 0.5);
+    CHECK_EQ(cd(empty), doctest::Approx(0.5));
   }
 }
 
 TEST_SUITE("PreferredInstructors") {
-  // preferred list of uniqnames each adds to the score
+  // proportion of preferred instructors found in schedule is the score
+
+  TEST_CASE("Empty PreferredInstructors gives 0") {
+    pref::PreferredInstructors pi{};
+    Schedule empty;
+    Schedule loaded;
+    loaded.AddSection(stats250_204);
+    loaded.AddSection(math116_023);
+
+    CHECK_EQ(pi(empty), doctest::Approx(0));
+    CHECK_EQ(pi(loaded), doctest::Approx(0));
+  }
+
+  TEST_CASE("Loaded PreferredInstructors on empty schedule gives 0") {
+    pref::PreferredInstructors pi{"Rabbit", "God"};
+    Schedule empty;
+
+    CHECK_EQ(pi(empty), doctest::Approx(0));
+  }
+
+  TEST_CASE("PreferredInstructors on schedule with no preferred instructors gives 0") {
+    pref::PreferredInstructors pi{"jjuett", "jbbeau"};
+    Schedule loaded;
+    loaded.AddSection(ala223_001);
+    loaded.AddSection(eecs183_001);
+
+    CHECK_EQ(pi(loaded), doctest::Approx(0));
+  }
+
+  TEST_CASE("PreferredInstructors compares IDs case-insensitively") {
+    pref::PreferredInstructors pi{"EbFrEtZ"};
+    Schedule ala;
+    ala.AddSection(ala223_001);
+    CHECK_EQ(pi(ala), doctest::Approx(1));
+  }
+
+  TEST_CASE("PreferredInstructors ignores non-course time blocks") {
+    pref::PreferredInstructors pi{"BENTORRA", "AlRoMeRo", "ccccc"};
+    Schedule sched;
+    sched.AddSection(eecs183_001);
+    sched.AddSection(stats250_204); // encountered multiple times
+    sched.AddSection(ala223_001); // searches for ebfretz, past the last preferred
+    sched.InsertBlocks(std::vector<TimeBlock>{{{16, 0}, {19, 0}, 0b0010100}});
+
+    CHECK_EQ(pi(sched), doctest::Approx(2.0 / 3.0));
+  }
 }
