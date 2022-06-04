@@ -1,21 +1,27 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
-#include "schedule.hpp"
 #include "preferences.hpp"
+#include "schedule.hpp"
 #include "test_common_courses.hpp"
 
 TEST_SUITE("linear interpolation of preferences") {
   TEST_CASE("degenerate interpolation with <2 points") {
-    CHECK_THROWS_WITH_AS(LinearInterpolator<Time>({}), "Not enough points for linear interpolation (need at least 2, got 0)", std::invalid_argument);
-    CHECK_THROWS_WITH_AS((LinearInterpolator<Time>{{{9, 0}, 0.5}}), "Not enough points for linear interpolation (need at least 2, got 1)", std::invalid_argument);
+    CHECK_THROWS_WITH_AS(
+        LinearInterpolator<Time>({}),
+        "Not enough points for linear interpolation (need at least 2, got 0)",
+        std::invalid_argument);
+    CHECK_THROWS_WITH_AS(
+        (LinearInterpolator<Time>{{{9, 0}, 0.5}}),
+        "Not enough points for linear interpolation (need at least 2, got 1)",
+        std::invalid_argument);
   }
 
   TEST_CASE("interpolation with 2 points") {
     LinearInterpolator<Time> li{{{8, 0}, 0.2}, {{11, 0}, 1.0}};
     CHECK_EQ(li({11, 0}), doctest::Approx(1.0));
     CHECK_EQ(li({8, 0}), doctest::Approx(0.2));
-    CHECK_EQ(li({10, 0}), doctest::Approx(0.2 + 1.6/3));
+    CHECK_EQ(li({10, 0}), doctest::Approx(0.2 + 1.6 / 3));
   }
 
   TEST_CASE("interpolation out of range uses closest known value") {
@@ -25,15 +31,9 @@ TEST_SUITE("linear interpolation of preferences") {
   }
 
   TEST_CASE("interpolation with 7 points") {
-    LinearInterpolator<Time> li{
-        {{8, 0}, 0.4},
-        {{9, 0}, 0.6},
-        {{10, 0}, 0.8},
-        {{10, 30}, 1},
-        {{11, 0}, 0.8},
-        {{11, 30}, 0.5},
-        {{12, 0}, 0.2}
-    };
+    LinearInterpolator<Time> li{{{8, 0}, 0.4}, {{9, 0}, 0.6},  {{10, 0}, 0.8},
+                                {{10, 30}, 1}, {{11, 0}, 0.8}, {{11, 30}, 0.5},
+                                {{12, 0}, 0.2}};
     // before the first point
     CHECK_EQ(li({6, 25}), doctest::Approx(0.4));
     // at the first point
@@ -48,7 +48,7 @@ TEST_SUITE("linear interpolation of preferences") {
     CHECK_EQ(li({10, 0}), doctest::Approx(0.8));
     // between the third and fourth points
     CHECK_EQ(li({10, 15}), doctest::Approx(0.9));
-    CHECK_EQ(li({10, 40}), doctest::Approx(1 - 0.2/3.0));
+    CHECK_EQ(li({10, 40}), doctest::Approx(1 - 0.2 / 3.0));
     CHECK_EQ(li({11, 20}), doctest::Approx(0.6));
     CHECK_EQ(li({11, 50}), doctest::Approx(0.3));
     CHECK_EQ(li({12, 0}), doctest::Approx(0.2));
@@ -58,12 +58,8 @@ TEST_SUITE("linear interpolation of preferences") {
 
 TEST_SUITE("EarliestTime and LatestTime preferences") {
   TEST_CASE("EarliestTime averages all weekdays with classes for metric") {
-    pref::EarliestTime et({
-                              {{7, 0}, 0.2},
-                              {{9, 0}, 0.8},
-                              {{10, 0}, 0.7},
-                              {{12, 0}, 0.4}
-                          });
+    pref::EarliestTime et(
+        {{{7, 0}, 0.2}, {{9, 0}, 0.8}, {{10, 0}, 0.7}, {{12, 0}, 0.4}});
     Schedule sched;
     sched.AddSection(eecs183_001);
     sched.AddSection(stats250_204);
@@ -83,14 +79,9 @@ TEST_SUITE("EarliestTime and LatestTime preferences") {
   }
 
   TEST_CASE("LatestTime averages all weekdays with classes for metric") {
-    LinearInterpolator<Time> li{
-        {{8, 0}, 1.0},
-        {{11, 0}, 0.9},
-        {{14, 0}, 0.8},
-        {{16, 0}, 0.5},
-        {{17, 0}, 0.2},
-        {{19, 0}, 0.05}
-    };
+    LinearInterpolator<Time> li{{{8, 0}, 1.0},  {{11, 0}, 0.9},
+                                {{14, 0}, 0.8}, {{16, 0}, 0.5},
+                                {{17, 0}, 0.2}, {{19, 0}, 0.05}};
     pref::LatestTime et(li);
     Schedule sched;
     sched.AddSection(eecs183_001);
@@ -115,12 +106,11 @@ TEST_SUITE("CompactDays") {
   TEST_CASE("CompactDays averages all weekdays with classes for metric") {
     pref::CompactDays cd{{{3, 0.9}, {5, 0.6}, {7, 0.1}}};
     Schedule sched;
-    sched.AddSection(eecs183_001); // 8:30-10:00 01010
+    sched.AddSection(eecs183_001);  // 8:30-10:00 01010
     sched.AddSection(stats250_204); // 13:00-16:00 01000
-    sched.AddSection(math116_023); // 11:30-13:00 01101
-    // Mon: none, Tue: 8:30 to 16, Wed: 11:30 to 13:00, Thu: 8:30 to 10:00, Fri: 11:30 to 13:00
-    // durations: 7.5, 1.5, 1.5, 1.5
-    // ratings: 0.1, 0.9, 0.9, 0.9
+    sched.AddSection(math116_023);  // 11:30-13:00 01101
+    // Mon: none, Tue: 8:30 to 16, Wed: 11:30 to 13:00, Thu: 8:30 to 10:00, Fri:
+    // 11:30 to 13:00 durations: 7.5, 1.5, 1.5, 1.5 ratings: 0.1, 0.9, 0.9, 0.9
     // average: 0.7
 
     CHECK_EQ(cd(sched), doctest::Approx(0.7));
@@ -155,7 +145,8 @@ TEST_SUITE("PreferredInstructors") {
     CHECK_EQ(pi(empty), doctest::Approx(0));
   }
 
-  TEST_CASE("PreferredInstructors on schedule with no preferred instructors gives 0") {
+  TEST_CASE("PreferredInstructors on schedule with no preferred instructors "
+            "gives 0") {
     pref::PreferredInstructors pi{"jjuett", "jbbeau"};
     Schedule loaded;
     loaded.AddSection(ala223_001);
@@ -176,13 +167,57 @@ TEST_SUITE("PreferredInstructors") {
     Schedule sched;
     sched.AddSection(eecs183_001);
     sched.AddSection(stats250_204); // encountered multiple times
-    sched.AddSection(ala223_001); // searches for ebfretz, past the last preferred
-    sched.InsertBlocks(std::vector<TimeBlock>{{{16, 0}, {19, 0}, 0b0010100}});
+    sched.AddSection(
+        ala223_001); // searches for ebfretz, past the last preferred
+    std::vector<TimeBlock> reserved{{{16, 0}, {19, 0}, 0b0010100}};
+    sched.InsertBlocks(reserved);
 
     CHECK_EQ(pi(sched), doctest::Approx(2.0 / 3.0));
   }
 }
 
 TEST_SUITE("TravelDistance") {
+  LatLong loc_mojo{-83.73136656773802, 42.27991101688434};
+  TEST_CASE("TravelDistance on empty schedule gives 0m") {
+    pref::TravelDistance td{loc_mojo};
+    Schedule sched;
 
+    CHECK_EQ(td(sched), doctest::Approx(0));
+  }
+
+  TEST_CASE("TravelDistance on light schedule gives straight-line distance") {
+    pref::TravelDistance td{loc_mojo};
+    Schedule sched;
+    sched.AddSection(eecs482_001);
+    sched.AddSection(eecs428_001);
+
+    double expected{1780 * 4 + 1930 * 4};
+    CHECK_EQ(td(sched), doctest::Approx(expected).epsilon(200));
+  }
+
+  TEST_CASE("TravelDistance on heavy schedule gives straight-line distance") {
+    pref::TravelDistance td{loc_mojo};
+    Schedule sched;
+    sched.AddSection(math116_023);
+    sched.AddSection(eecs183_001);
+
+    double expected{1660 + 710.72*4 + 632.45*2};
+    CHECK_EQ(td(sched), doctest::Approx(expected).epsilon(200));
+  }
+
+  TEST_CASE("TravelDistance handles non-class time blocks") {
+    pref::TravelDistance td{loc_mojo};
+    Schedule sched;
+    sched.AddSection(ala223_001);
+    sched.AddSection(stats250_204);
+    std::vector<TimeBlock> reserved{
+      {{17, 0}, {19, 0}, 0b0001000}
+    };
+    // all component TimeBlocks have to live as long as the schedule
+    // because the schedule maintains pointers to them
+    sched.InsertBlocks(reserved);
+
+    double expected{710.72 * 6};
+    CHECK_EQ(td(sched), doctest::Approx(expected).epsilon(200));
+  }
 }

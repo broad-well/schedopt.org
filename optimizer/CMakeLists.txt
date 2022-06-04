@@ -12,7 +12,7 @@ find_package(Boost REQUIRED)
 #
 #aws_lambda_package_target(main)
 set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -march=native -ffast-math")
-set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3")
+set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0 -fsanitize=address")
 
 add_executable(test_schedule "test_schedule.cpp")
 target_link_libraries(test_schedule PRIVATE doctest::doctest Boost::boost)
