@@ -182,3 +182,7 @@ TEST_SUITE("PreferredInstructors") {
     CHECK_EQ(pi(sched), doctest::Approx(2.0 / 3.0));
   }
 }
+
+TEST_SUITE("TravelDistance") {
+
+}
