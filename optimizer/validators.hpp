@@ -32,6 +32,8 @@ public:
     newSched.AddSection(sect);
     return (*this)(newSched);
   }
+
+  virtual ~Validator() = default;
 };
 
 namespace valid {
