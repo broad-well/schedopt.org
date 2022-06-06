@@ -9,7 +9,8 @@
 // schedule that violates the requirement in any schedule, it is optimized to
 // become a PreRequirement, which is used to prune the search space of section
 // clusters *before* beginning the search.
-class PreRequirement {
+struct PreRequirement {
+  virtual ~PreRequirement() = default;
   virtual bool CheckSection(ClassSection const &sect) const = 0;
 };
 

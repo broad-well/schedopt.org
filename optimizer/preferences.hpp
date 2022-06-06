@@ -36,8 +36,14 @@ template <typename K> struct LinearInterpolator {
   }
 };
 
-class Preference {
+struct Preference {
+  virtual ~Preference() = default;
   virtual double operator()(Schedule const &) const = 0;
+};
+
+struct AbsoluteMetric {
+  virtual ~AbsoluteMetric() = default;
+  virtual double operator()(Schedule const&) const = 0;
 };
 
 namespace pref {
@@ -123,11 +129,13 @@ private:
   }
 };
 
-struct TravelDistance {
+struct TravelDistance : public AbsoluteMetric {
   LatLong residence;
 
+  explicit TravelDistance(LatLong residence): residence(residence) {}
+  
   // meters
-  double operator()(Schedule const &sched) const {
+  double operator()(Schedule const &sched) const override {
     double dist{0};
     for (std::uint8_t day = 0; day < kNumWeekdays; ++day) {
       LatLong loc{residence};
