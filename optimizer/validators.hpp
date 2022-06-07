@@ -2,14 +2,13 @@
 
 #include "schedule.hpp"
 
-
 template<typename T>
 inline bool travel_intensive(T const &b1, T const& b2) {
   return MetersBetween(b1, b2) > 1000;
 }
 
 inline bool travel_practical_from_to(TimeBlock const &b1, TimeBlock const &b2) {
-  auto interval = b1.Start() - b2.End();
+  auto interval = b2.Start() - b1.End();
   return not travel_intensive(b1, b2) or interval > 10;
 }
 

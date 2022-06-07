@@ -1,8 +1,8 @@
 import assert from "assert";
 import { allClusters } from "../src/genClusters.js";
-import spanish232 from "../soc-samples/spanish232.json" assert { type: "json" };
-import eecs203 from "../soc-samples/eecs203.json" assert { type: "json" };
-import math215 from "../soc-samples/math215.json" assert { type: "json" };
+import spanish232 from "../soc-samples/spanish232.json";
+import eecs203 from "../soc-samples/eecs203.json";
+import math215 from "../soc-samples/math215.json";
 import { readdirSync, readFileSync } from "fs";
 import { join } from "path";
 

@@ -137,26 +137,63 @@ TEST_SUITE("travel practical") {
     CHECK_FALSE(tp.CheckedInsert(sched, ioe));
   }
 
-TEST_CASE("hill-to-Ross with no gap is not practical") {
-  Schedule sched;
-  ClassSection lifeScience {
-      {{{8, 0}, {9, 30}, 0b0101000, {{-83.73416740767517, 42.27969979870305}}, lifeScience}},
-      {"lifesci"}, "LEC", 22444, 1, 4
-  };
-  ClassSection pubHealth {
-      {{{9, 30}, {10, 30}, 0b0000101, {{-83.73018194342629, 42.2802180384397}}, pubHealth}},
-      {"digital"}, "LEC", 19952, 1, 3
-  };
-  ClassSection bus {
-      {{{10, 30}, {12, 0}, 0b0100001, {{-83.73788423020557, 42.27300677251735}}, bus}},
-      {"business"}, "LEC", 28853, 23, 3
-  };
-  valid::TravelPractical tp;
+  TEST_CASE("central-to-north with gap is practical") {
+    Schedule sched;
+    ClassSection digital {
+        {{{14, 30}, {16, 0}, 0b0101000, {{-83.73969633054428, 42.276599866547734}}, digital}},
+        {"digital"}, "LEC", 19952, 1, 3
+    };
+    ClassSection ioe {
+        {{{16, 30}, {17, 30}, 0b0100100, {{-83.71382276363592, 42.29105755443403}}, ioe}},
+        {"ioe"}, "LAB", 22411, 23, 4
+    };
+    valid::TravelPractical tp;
 
-  CHECK(tp.CheckedInsert(sched, pubHealth));
-  CHECK(tp.CheckedInsert(sched, lifeScience));
-  CHECK_FALSE(tp.CheckedInsert(sched, bus));
-}
+    CHECK(tp.CheckedInsert(sched, digital));
+    CHECK(tp.CheckedInsert(sched, ioe));
+  }
+
+  TEST_CASE("hill-to-Ross with no gap is not practical") {
+    Schedule sched;
+    ClassSection lifeScience {
+        {{{8, 0}, {9, 30}, 0b0101000, {{-83.73416740767517, 42.27969979870305}}, lifeScience}},
+        {"lifesci"}, "LEC", 22444, 1, 4
+    };
+    ClassSection pubHealth {
+        {{{9, 30}, {10, 30}, 0b0000101, {{-83.73018194342629, 42.2802180384397}}, pubHealth}},
+        {"digital"}, "LEC", 19952, 1, 3
+    };
+    ClassSection bus {
+        {{{10, 30}, {12, 0}, 0b0100001, {{-83.73788423020557, 42.27300677251735}}, bus}},
+        {"business"}, "LEC", 28853, 23, 3
+    };
+    valid::TravelPractical tp;
+
+    CHECK(tp.CheckedInsert(sched, pubHealth));
+    CHECK(tp.CheckedInsert(sched, lifeScience));
+    CHECK_FALSE(tp.CheckedInsert(sched, bus));
+  }
+
+  TEST_CASE("hill-to-Ross with gap is practical") {
+    Schedule sched;
+    ClassSection lifeScience {
+        {{{8, 0}, {9, 30}, 0b0101000, {{-83.73416740767517, 42.27969979870305}}, lifeScience}},
+        {"lifesci"}, "LEC", 22444, 1, 4
+    };
+    ClassSection pubHealth {
+        {{{9, 30}, {10, 30}, 0b0000101, {{-83.73018194342629, 42.2802180384397}}, pubHealth}},
+        {"digital"}, "LEC", 19952, 1, 3
+    };
+    ClassSection bus {
+        {{{14, 0}, {15, 30}, 0b0100001, {{-83.73788423020557, 42.27300677251735}}, bus}},
+        {"business"}, "LEC", 28853, 23, 3
+    };
+    valid::TravelPractical tp;
+
+    CHECK(tp.CheckedInsert(sched, pubHealth));
+    CHECK(tp.CheckedInsert(sched, lifeScience));
+    CHECK(tp.CheckedInsert(sched, bus));
+  }
 
 }
 }

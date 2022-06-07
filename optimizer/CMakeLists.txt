@@ -39,3 +39,6 @@ add_test(test_validators test_validators)
 add_test(test_requirements test_requirements)
 add_test(test_preferences test_preferences)
 add_test(test_search test_search)
+
+add_executable(manual_order "main.cpp")
+target_link_libraries(manual_order PRIVATE Boost::boost)

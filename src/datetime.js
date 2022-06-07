@@ -1,4 +1,7 @@
 import dayjs from "dayjs";
+import customParseFormat from 'dayjs/plugin/customParseFormat.js';
+
+dayjs.extend(customParseFormat)
 
 export function parseMeeting({ Days, Times }) {
   if (Days === "TBA" || Times === "TBA")

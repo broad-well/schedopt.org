@@ -2,6 +2,9 @@
   "name": "schedopt-optimizer",
   "version-string": "0.0.1",
   "dependencies": [
-    "doctest", "boost-geometry"
+    "doctest", "boost-geometry", "aws-lambda-cpp", {
+      "name": "aws-sdk-cpp",
+      "features": ["dynamodb"]
+    }
   ]
 }
