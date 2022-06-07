@@ -15,6 +15,6 @@
     },
     "scripts": {
         "vitest": "vitest",
-        "test": "vitest run test"
+        "test": "vitest run --dir test/"
     }
 }
