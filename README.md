@@ -1,6 +1,7 @@
 # SchedOpt.org
 
 [![optimizer-tests](https://github.com/broad-well/schedopt.org/actions/workflows/optimizer-tests.yml/badge.svg)](https://github.com/broad-well/schedopt.org/actions/workflows/optimizer-tests.yml)
+[![Class Retriever Tests](https://github.com/broad-well/schedopt.org/actions/workflows/retriever-tests.yml/badge.svg)](https://github.com/broad-well/schedopt.org/actions/workflows/retriever-tests.yml)
 
 Supercharge your university schedule. Specify your courses and preferences, and SchedOpt.org will find your best schedules. No more manual fiddling!
 
