@@ -1,4 +1,4 @@
-name: optimizer-tests
+name: Optimizer Tests
 on: push
 
 jobs:

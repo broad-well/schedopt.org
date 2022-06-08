@@ -1,10 +1,14 @@
 
 <div id="global-container">
     <aside>
-        <h1 style="margin-bottom: 8px">Schedule {scheduleIndex + 1} / {schedules.length}</h1>
-        <CurrentHistogram dataset={schedules} dataKey="compositeScore" thisIndex={scheduleIndex} caption='Composite preference score compared to other schedules' />
+        <h1 style="margin: 0 0 8px 0">Schedule {scheduleIndex + 1} / {schedules.length}</h1>
+        <!-- <CurrentPlot dataset={schedules} x={s => s.metrics[0]} y="compositeScore" thisIndex={0} caption='Scatterplot of travel distance vs composite score' type='scatter' /> -->
+        <CurrentPlot dataset={schedules} x="compositeScore" thisIndex={scheduleIndex} caption='Composite preference score compared to other schedules' />
+        {#each preferenceFactors as prefLabel, i}
+            <CurrentPlot dataset={schedules} x={s => s.preferences[i]} thisIndex={scheduleIndex} caption={prefLabel + ' preference factor compared to other schedules'} />
+        {/each}
         {#each metrics as metric, i}
-            <CurrentHistogram dataset={schedules} dataKey={s => s.metrics[i]} thisIndex={scheduleIndex} caption={metric + ' compared to other schedules'} />
+            <CurrentPlot dataset={schedules} x={s => s.metrics[i]} thisIndex={scheduleIndex} caption={metric + ' compared to other schedules'} />
         {/each}
         <button on:click={goToPrev}>&leftarrow; Previous</button>
         <button on:click={goToNext}>Next &rightarrow;</button>
@@ -77,7 +81,7 @@
         }
         aside {
             flex-grow: 1;
-            flex-basis: 40%;
+            flex-basis: 30%;
         }
         main {
             flex-grow: 2;
@@ -110,7 +114,7 @@
 <script>
 import { onMount } from "svelte";
 
-    import CurrentHistogram from "./CurrentHistogram.svelte";
+    import CurrentPlot from "./CurrentPlot.svelte";
     const kColorPalette = ["rgb(91,88,143)", "rgb(66,134,33)", "rgb(106,39,134)", "rgb(115,123,85)", "rgb(42,43,240)", "rgb(169,104,28)", "rgb(215,37,163)", "rgb(36,128,161)"];
     const kTimes = ['7 AM', '8 AM', '9 AM', '10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM', '5 PM', '6 PM', '7 PM', '8 PM']
     const kWeekdayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];

@@ -1,4 +1,4 @@
-#include "order-[uniqname].hpp"
+#include "order-robot.hpp"
 
 
 int main() {
@@ -22,7 +22,7 @@ int main() {
     for (auto section: badSections) {
       pair.second.sections.erase(section);
     }
-    printf("in %s, %llu clusters remain\n", pair.first.c_str(), pair.second.clusters.size());
+    printf("in %s, %zu clusters remain\n", pair.first.c_str(), pair.second.clusters.size());
   }
   Search search(courses);
 
@@ -33,6 +33,13 @@ int main() {
     if (i != 0) printf(",");
     printf("%s", res.course_order[i].c_str());
   }
+  for (auto & pref : search.prefs) {
+    printf(",pref::%s", pref.first->Label().c_str());
+  }
+  printf(",prefs::compositeScore");
+  for (auto & metric : search.metrics) {
+    printf(",metric::%s", metric->Label().c_str());
+  }
   puts("");
   res.ForEachSchedule([&](ScheduleStats stats, auto const& stack) {
     for (size_t i = 0; i < stack.size(); ++i) {
@@ -42,6 +49,9 @@ int main() {
         if (j != 0) printf(":");
         printf("%u", cluster[j]);
       }
+    }
+    for (size_t i = 0; i < stats.prefs.Size(); ++i) {
+      printf(",%.3f", stats.prefs[i]);
     }
     printf(",%.6f,%.2f\n", stats.pref_score, stats.metrics[0]);
   });
