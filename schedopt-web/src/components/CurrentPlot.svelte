@@ -16,7 +16,6 @@
 </style>
 <script>
     import * as Plot from "@observablehq/plot";
-    import { width } from '@observablehq/stdlib/dist/stdlib';
     import { onMount } from "svelte";
 
     /**

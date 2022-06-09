@@ -2,17 +2,46 @@
 <div id="global-container">
     <aside>
         <section id="graphs">
-            <CanvasPlot series={schedules.map(s => s.compositeScore)} currentIndex={scheduleIndex} caption={'Composite preference score compared to other schedules'}/>
+            <CanvasPlot height={denseGraphs ? 80 : 100} series={schedules.map(s => s.compositeScore)} currentIndex={scheduleIndex}>
+                Composite preference score
+            </CanvasPlot>
             <!-- <CurrentPlot dataset={schedules} x={s => s.metrics[0]} y="compositeScore" thisIndex={0} caption='Scatterplot of travel distance vs composite score' type='scatter' /> -->
             <!-- <CurrentPlot dataset={schedules} x="compositeScore" thisIndex={scheduleIndex} caption='Composite preference score compared to other schedules' /> -->
             {#each preferenceFactors as prefLabel, i}
-                <CanvasPlot series={schedules.map(s => s.preferences[i])} currentIndex={scheduleIndex} caption={prefLabel + ' preference factor compared to other schedules'}/>
+                <CanvasPlot height={denseGraphs ? 80 : 100} series={schedules.map(s => s.preferences[i])} currentIndex={scheduleIndex}>
+                    {prefLabel + ' preference factor'}
+                </CanvasPlot>
             {/each}
             {#each metrics as metric, i}
-                <CanvasPlot series={schedules.map(s => s.metrics[i])} currentIndex={scheduleIndex} caption={metric + ' compared to other schedules'} />
+                <CanvasPlot height={denseGraphs ? 80 : 100} series={schedules.map(s => s.metrics[i])} currentIndex={scheduleIndex}>
+                    {metric + ' compared to other schedules'}
+                </CanvasPlot>
             {/each}
             <div class="big">
-                <CanvasPlot height={240} series={schedules} x={s => s.metrics[0]} y={s => s.compositeScore} type='scatterplot' currentIndex={scheduleIndex} caption='Scatterplot of weekly travel (x) vs. composite preference score (y)'/>
+                {#key {scatterX, scatterY}}
+                <CanvasPlot height={(denseGraphs ? 180 : 240)} series={schedules}
+                        x={s => JSON.parse(scatterX).reduce((obj, key) => obj[key], s)}
+                        y={s => JSON.parse(scatterY).reduce((obj, key) => obj[key], s)} type='scatterplot'
+                        currentIndex={scheduleIndex}>
+                    Scatterplot of <select bind:value={scatterY}>
+                        <option value={JSON.stringify(['compositeScore'])}>Composite preference</option>
+                        {#each preferenceFactors as prefLabel, i}
+                            <option value={JSON.stringify(['preferences', i])}>{prefLabel}</option>
+                        {/each}
+                        {#each metrics as metric, i}
+                            <option value={JSON.stringify(['metrics', i])}>{metric}</option>
+                        {/each}
+                    </select> (y) vs. <select bind:value={scatterX}>
+                        <option value={JSON.stringify(['compositeScore'])}>Composite preference</option>
+                        {#each preferenceFactors as prefLabel, i}
+                            <option value={JSON.stringify(['preferences', i])}>{prefLabel}</option>
+                        {/each}
+                        {#each metrics as metric, i}
+                            <option value={JSON.stringify(['metrics', i])}>{metric}</option>
+                        {/each}
+                    </select> (x)
+                </CanvasPlot>
+                {/key}
             </div>
         </section>
         <div id="schedule-label">
@@ -87,7 +116,7 @@
         height: 100vh;
         width: 100vw;
         display: flex;
-        padding: calc(min(2vw, 1rem));
+        padding: calc(min(2vw, 0.5rem));
         box-sizing: border-box;
         flex-direction: column;
     }
@@ -144,7 +173,6 @@
 <script>
 import { onMount } from "svelte";
     import CanvasPlot from "./CanvasPlot.svelte";
-    import CurrentPlot from "./CurrentPlot.svelte";
     const kColorPalette = ["rgb(91,88,143)", "rgb(66,134,33)", "rgb(106,39,134)", "rgb(115,123,85)", "rgb(42,43,240)", "rgb(169,104,28)", "rgb(215,37,163)", "rgb(36,128,161)"];
     const kTimes = ['7 AM', '8 AM', '9 AM', '10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM', '5 PM', '6 PM', '7 PM', '8 PM']
     const kWeekdayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
@@ -162,11 +190,16 @@ import { onMount } from "svelte";
 
     let scheduleIndex = 0;
 
-    // famnm website update
-    // apply for bti internship / formalize extension goals
-    // italki
+    let scatterX = JSON.stringify(['metrics', 0]), scatterY = JSON.stringify(['compositeScore']);
+    function captionScatter(path) {
+        if (path[0] === 'compositeScore') return 'composite preference score';
+        else if (path[0] === 'metrics') return metrics[path[1]];
+        else if (path[0] === 'preferences') return preferenceFactors[path[1]];
+    }
 
+    $: denseGraphs = metrics.length + preferenceFactors.length > 3;
     $: schedule = schedules[scheduleIndex];
+
 
     function timeBlockRows(startTime, endTime) {
         const startMin = startTime[0] * 60 + startTime[1];

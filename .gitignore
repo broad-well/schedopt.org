@@ -1,9 +1,9 @@
 node_modules
-.idea/*
+.idea/
 secret.*
 .ccls-cache/
 build/
 cmake-build-*/
 .pnpm-debug.log
 .cache/
-.idea/
+.vscode/
