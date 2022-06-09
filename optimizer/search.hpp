@@ -1,115 +1,113 @@
 #pragma once
 
 #include <memory>
-#include <utility>
-#include <vector>
 #include <unordered_map>
+#include <utility>
 #include <variant>
+#include <vector>
 
-#include "schedule.hpp"
-#include "requirements.hpp"
 #include "preferences.hpp"
+#include "requirements.hpp"
+#include "schedule.hpp"
 
 struct CourseDetails {
   std::vector<std::vector<std::uint16_t>> clusters;
   std::unordered_map<std::uint16_t, ClassSection> sections;
 };
 
-// Compact description of what sections to enroll in
-struct ScheduleEnrollment {
-  std::vector<std::pair<std::string, std::vector<std::uint16_t> &>> course_clusters;
-};
-
-// Lightweight array<double> with size immutable after creation but dynamic (can be determined at runtime)
-class Metrics {
-  double* data;
+// Lightweight array<double> with size immutable after creation but dynamic (can
+// be determined at runtime)
+template<class T>
+class Array {
+  T *data;
   std::uint32_t size;
 
- public:
+public:
   // not zeroed!
-  explicit Metrics(std::uint32_t size): data(new double[size]), size(size) {}
+  explicit Array(std::uint32_t size) : data(new T[size]), size(size) {}
 
-  Metrics(std::initializer_list<double> list): data(new double[list.size()]), size(list.size()) {
+  Array(std::initializer_list<T> list)
+      : data(new T[list.size()]), size(list.size()) {
     std::uint32_t index = 0;
-    for (double d: list) {
+    for (T const& d : list) {
       data[index++] = d;
     }
   }
 
-  Metrics(Metrics const& other): data(new double[other.size]), size(other.size) {
+  Array(Array<T> const &other)
+      : data(new T[other.size]), size(other.size) {
     for (std::uint32_t i = 0; i < other.size; ++i) {
       data[i] = other[i];
     }
   }
 
   // FIXME test?
-  Metrics& operator=(Metrics const& other) {
-    if (this == &other) return *this;
-    Metrics tmp(other);
+  Array &operator=(Array<T> const &other) {
+    if (this == &other)
+      return *this;
+    Array tmp(other);
     std::swap(tmp.data, data);
     std::swap(tmp.size, size);
     return *this;
   }
 
-  Metrics(Metrics &&other): data(other.data), size(other.size) {
+  Array(Array &&other) : data(other.data), size(other.size) {
     other.data = nullptr;
     other.size = 0;
   }
 
   std::uint32_t Size() const { return size; }
 
-  double operator[](std::uint32_t i) const {
+  T operator[](std::uint32_t i) const {
 #ifndef NDEBUG
     assert(i < size);
 #endif
     return data[i];
   }
 
-  double& operator[](std::uint32_t i) {
+  T &operator[](std::uint32_t i) {
 #ifndef NDEBUG
     assert(i < size);
 #endif
     return data[i];
   }
 
-  ~Metrics() {
-    delete[] data;
-  }
+  ~Array() { delete[] data; }
 };
 
 struct ScheduleStats {
   double pref_score;
-  Metrics metrics;
+  Array<double> metrics;
 };
 
 struct ClusterNode {
   std::variant<
       // cluster index (in CourseDetails) -> Node with that cluster applied
-      std::map<std::uint32_t, ClusterNode>,
-      ScheduleStats> data;
+      std::map<std::uint32_t, ClusterNode>, ScheduleStats>
+      data;
 };
 
 struct SearchResults {
   std::vector<std::string> const &course_order;
   ClusterNode root;
 
-  template<typename T>
-  void ForEachSchedule(T exec) const {
+  template <typename T> void ForEachSchedule(T exec) const {
     std::vector<std::uint32_t> stack;
     ForEachSchedule(exec, root, stack);
   }
 
- private:
-  template<typename T>
-  void ForEachSchedule(T exec, ClusterNode const& node, std::vector<std::uint32_t> &stack) const {
+private:
+  template <typename T>
+  void ForEachSchedule(T exec, ClusterNode const &node,
+                       std::vector<std::uint32_t> &stack) const {
     using namespace std;
     // depth: stack.size()
     // next index of course_order to look, # of clusters in partial
     if (stack.size() == course_order.size()) {
       exec(get<ScheduleStats>(node.data), stack);
     } else {
-      auto const& children = get<map<uint32_t, ClusterNode>>(node.data);
-      for (auto const& pair: children) {
+      auto const &children = get<map<uint32_t, ClusterNode>>(node.data);
+      for (auto const &pair : children) {
         stack.push_back(pair.first);
         ForEachSchedule(exec, pair.second, stack);
         stack.pop_back();
@@ -119,24 +117,25 @@ struct SearchResults {
 };
 
 struct Search {
-  // AFTER filtering by prerequirements (which should be done while loading from db)
+  // AFTER filtering by prerequirements (which should be done while loading from
+  // db)
   std::unordered_map<std::string, CourseDetails> const &courses;
   std::vector<std::unique_ptr<Validator>> reqs;
   // weighted preferences
   std::vector<std::pair<std::unique_ptr<Preference>, double>> prefs;
   std::vector<std::unique_ptr<AbsoluteMetric>> metrics;
 
-  Search(decltype(courses) courses)
-      : courses(courses) {}
+  Search(decltype(courses) courses) : courses(courses) {}
 
-// Conducts a complete search (with backtracking) to find all schedule enrollments
+  // Conducts a complete search (with backtracking) to find all schedule
+  // enrollments
   SearchResults FindAllSchedules() {
     course_order = CourseOrderByIncreasingClusterCount();
     partials.resize(courses.size());
     return {course_order, RunSearch(0u)};
   }
 
- private:
+private:
   std::vector<Schedule> partials;
   std::vector<std::string> course_order;
 
@@ -148,9 +147,11 @@ struct Search {
     vector<string> out;
     out.reserve(courses.size());
     for (auto const &pair : courses) {
-      auto ins = lower_bound(begin(out), end(out), pair.first, [this](auto const &a, auto const &b) {
-        return courses.at(a).clusters.size() < courses.at(b).clusters.size();
-      });
+      auto ins = lower_bound(begin(out), end(out), pair.first,
+                             [this](auto const &a, auto const &b) {
+                               return courses.at(a).clusters.size() <
+                                      courses.at(b).clusters.size();
+                             });
       out.insert(ins, pair.first);
     }
     assert(out.size() == courses.size());
@@ -160,9 +161,8 @@ struct Search {
   ClusterNode RunSearch(std::size_t depth) {
     // base case
     if (depth == partials.size()) {
-      return depth == 0 ?
-        ClusterNode{ScheduleStats{0, {}}} :
-        ClusterNode{EvaluateSchedule(partials.back())};
+      return depth == 0 ? ClusterNode{ScheduleStats{0, {}}}
+                        : ClusterNode{EvaluateSchedule(partials.back())};
     }
 
     auto const &details{courses.at(course_order.at(depth))};
@@ -181,7 +181,8 @@ struct Search {
       }
 
       // ignore this cluster if req/validator check failed
-      if (not valid) continue;
+      if (not valid)
+        continue;
       children[static_cast<std::uint32_t>(i)] = RunSearch(depth + 1);
     }
     return {children};
@@ -192,17 +193,19 @@ struct Search {
         !valid_travel.CheckInsertion(partials[depth], sect))
       return false;
     for (auto const &req : reqs) {
-      if (!req->CheckInsertion(partials[depth], sect)) return false;
+      if (!req->CheckInsertion(partials[depth], sect))
+        return false;
     }
     return true;
   }
 
-  ScheduleStats EvaluateSchedule(Schedule const& sched) const {
+  ScheduleStats EvaluateSchedule(Schedule const &sched) const {
     double score{0};
-    for (auto const& pref: prefs) {
-      score += (*pref.first)(sched) * pref.second;
+    for (auto const &pref : prefs) {
+      score += (*pref.first)(sched)*pref.second;
     }
-    ScheduleStats stats{score, Metrics(static_cast<std::uint32_t>(metrics.size()))};
+    ScheduleStats stats{score,
+                        Array<double>(static_cast<std::uint32_t>(metrics.size()))};
     for (std::uint32_t i = 0; i < metrics.size(); ++i) {
       stats.metrics[i] = (*metrics[i])(sched);
     }

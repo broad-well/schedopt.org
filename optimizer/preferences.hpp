@@ -1,6 +1,7 @@
 #pragma once
 #include <algorithm>
 #include <cmath>
+#include <stdexcept>
 #include <vector>
 
 #include "schedule.hpp"
@@ -151,6 +152,49 @@ struct TravelDistance : public AbsoluteMetric {
       dist += MetersBetween(loc, residence);
     }
     return dist;
+  }
+};
+
+class LoadDistribution : public Preference {
+  std::vector<double> ideal_load;
+public:
+
+  explicit LoadDistribution(std::initializer_list<double> loads): ideal_load(loads) {
+    if (ideal_load.size() != kNumWeekdays - 2 and ideal_load.size() != kNumWeekdays) {
+      throw std::invalid_argument("Invalid number of load scores: " + std::to_string(ideal_load.size()));
+    }
+  }
+
+  double operator()(Schedule const &sched) const override {
+    double weekly_hour_sum{0};
+    std::array<double, kNumWeekdays> hours_per_day;
+    for (std::uint8_t day = 0; day < kNumWeekdays; ++day) {
+      auto const& blocks{sched.BlocksOnDay(day)};
+      hours_per_day[day] = 0;
+      for (auto const block: blocks) {
+        hours_per_day[day] += (block->interval.end - block->interval.start) / 60.0;
+      }
+      if (day < ideal_load.size()) {
+        weekly_hour_sum += hours_per_day[day];
+      }
+    }
+    double daily_mean{weekly_hour_sum / ideal_load.size()};
+    if (daily_mean < 1e-5) return 0.5;
+    double score_sum{0}, score_min{1};
+    for (std::size_t i = 0; i < ideal_load.size(); ++i) {
+      double score{1.0 / (1 + Pow6((hours_per_day[i] - (1 + ideal_load[i]) * daily_mean) * 2.0 / daily_mean))};
+      score_sum += score;
+      if (score < score_min) score_min = score;
+    }
+    return (score_min + score_sum / ideal_load.size()) / 2;
+  }
+
+private:
+  static inline double Pow6(double x) {
+    // inspired by fast exponentiation
+    // two products of smaller numbers, one product of larger numbers
+    double pow3{x * x * x};
+    return pow3 * pow3;
   }
 };
 

@@ -1,3 +1,5 @@
+#include <cstddef>
+#include <initializer_list>
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
@@ -219,5 +221,72 @@ TEST_SUITE("TravelDistance") {
 
     double expected{710.72 * 6};
     CHECK_EQ(td(sched), doctest::Approx(expected).epsilon(200));
+  }
+}
+
+TEST_SUITE("LoadDistribution") {
+  using namespace std;
+
+  TEST_CASE("LoadDistribution on empty schedule gives 0.5") {
+    pref::LoadDistribution ld{0, 0, 0, 0, 0};
+    Schedule empty;
+
+    CHECK_EQ(ld(empty), doctest::Approx(0.5));
+  }
+
+  TEST_CASE("LoadDistribution all-zeros on perfectly balanced schedule gives 1.0") {
+    pref::LoadDistribution ld{0, 0, 0, 0, 0};
+    Schedule sched;
+    sched.AddSection(eecs482_001);
+    sched.AddSection(eecs428_001);
+    ClassSection friday_90min{
+        {{{10, 30}, {12, 0}, 0b0000100, loc_stamps, friday_90min}}};
+    sched.AddSection(friday_90min);
+
+    CHECK_EQ(ld(sched), doctest::Approx(1.0));
+  }
+
+  TEST_CASE("LoadDistribution -1,0.5,-1,0.5,0 on 0-3-0-3-2 schedule gives >0.87") {
+    pref::LoadDistribution ld{-1, 0.5, -1, 0.5, 0};
+    Schedule sched;
+    sched.AddSection(eecs428_001);
+    sched.AddSection(stats250_200);
+    sched.AddSection(eecs183_031);
+    CHECK_GT(ld(sched), 0.87);
+  }
+
+  TEST_CASE("LoadDistribution 0,0,0.3,-0.3,-0.4 on 4.5-4-5-3-2.5 schedule gives >0.9, but 0.3,0.3,-1,0.3,0 gives <0.5") {
+    pref::LoadDistribution ld{0, 0, 0.3, -0.3, -0.4};
+    Schedule sched;
+    ClassSection eecs183 {{{{13, 0}, {14, 30}, 0b0101000, {}, eecs183}, {{14, 0}, {16, 0}, 0b1000000, {}, eecs183}}};
+    ClassSection english125 {{{{10, 0}, {11, 30}, 0b0101000, {}, english125}}};
+    ClassSection math115 {{{{10, 0}, {11, 30}, 0b1010100, {}, math115}}};
+    ClassSection astro101 {{{{13, 0}, {14, 0}, 0b1010100, {}, astro101}, {{15, 0}, {16, 0}, 0b0100000, {}, astro101}}};
+    ClassSection ens344 {{{{19, 0}, {21, 30}, 0b0010000, {}, ens344}}};
+    sched.AddSection(eecs183);
+    sched.AddSection(english125);
+    sched.AddSection(math115);
+    sched.AddSection(astro101);
+    sched.AddSection(ens344);
+    CHECK_GT(ld(sched), 0.9);
+    pref::LoadDistribution ld2{0.3, 0.3, -1, 0.3, 0};
+    CHECK_LT(ld2(sched), 0.5);
+  }
+
+  TEST_CASE("LoadDistribution accepts distributions of size 7 for weekends") {
+    pref::LoadDistribution ld{0.25, 0.25, -1, 0.25, 0.25, -1, 0};
+    Schedule sched;
+    ClassSection class1{{{{9, 0}, {12, 0}, 0b1101100, {}, class1}}};
+    ClassSection weekend{{{{10, 0}, {11, 30}, 0b0000001, {}, weekend}}};
+    sched.AddSection(class1);
+    sched.AddSection(weekend);
+    CHECK_GT(ld(sched), 0.9);
+  }
+
+  TEST_CASE("LoadDistribution rejects distributions of size other than 5 or 7") {
+    CHECK_THROWS_WITH((pref::LoadDistribution{0, 0, 0, 0}), "Invalid number of load scores: 4");
+    CHECK_THROWS_WITH((pref::LoadDistribution{0, 0, 0}), "Invalid number of load scores: 3");
+    CHECK_THROWS_WITH((pref::LoadDistribution{0, 0, 0, 0, 0, 0}), "Invalid number of load scores: 6");
+    CHECK_THROWS_WITH((pref::LoadDistribution{0, 0, 0, 0, 0, 0, 0, 0}), "Invalid number of load scores: 8");
   }
 }
