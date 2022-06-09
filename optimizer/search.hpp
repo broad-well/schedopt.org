@@ -41,7 +41,6 @@ public:
     }
   }
 
-  // FIXME test?
   Array &operator=(Array<T> const &other) {
     if (this == &other)
       return *this;
@@ -77,6 +76,7 @@ public:
 
 struct ScheduleStats {
   double pref_score;
+  Array<double> prefs;
   Array<double> metrics;
 };
 
@@ -150,7 +150,7 @@ private:
       auto ins = lower_bound(begin(out), end(out), pair.first,
                              [this](auto const &a, auto const &b) {
                                return courses.at(a).clusters.size() <
-                                      courses.at(b).clusters.size();
+                                   courses.at(b).clusters.size();
                              });
       out.insert(ins, pair.first);
     }
@@ -161,7 +161,7 @@ private:
   ClusterNode RunSearch(std::size_t depth) {
     // base case
     if (depth == partials.size()) {
-      return depth == 0 ? ClusterNode{ScheduleStats{0, {}}}
+      return depth == 0 ? ClusterNode{ScheduleStats{0, {}, {}}}
                         : ClusterNode{EvaluateSchedule(partials.back())};
     }
 
@@ -201,10 +201,13 @@ private:
 
   ScheduleStats EvaluateSchedule(Schedule const &sched) const {
     double score{0};
-    for (auto const &pref : prefs) {
-      score += (*pref.first)(sched)*pref.second;
+    Array<double> pref_scores(static_cast<std::uint32_t>(prefs.size()));
+    for (std::size_t i = 0; i < prefs.size(); ++i) {
+      pref_scores[i] = (*prefs[i].first)(sched);
+      score += pref_scores[i] * prefs[i].second;
     }
     ScheduleStats stats{score,
+                        std::move(pref_scores),
                         Array<double>(static_cast<std::uint32_t>(metrics.size()))};
     for (std::uint32_t i = 0; i < metrics.size(); ++i) {
       stats.metrics[i] = (*metrics[i])(sched);

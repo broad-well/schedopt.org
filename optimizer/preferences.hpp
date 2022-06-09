@@ -40,18 +40,17 @@ template <typename K> struct LinearInterpolator {
 struct Preference {
   virtual ~Preference() = default;
   virtual double operator()(Schedule const &) const = 0;
+  virtual std::string const& Label() const = 0;
 };
 
-struct AbsoluteMetric {
-  virtual ~AbsoluteMetric() = default;
-  virtual double operator()(Schedule const&) const = 0;
-};
+// Same structure, just different name
+using AbsoluteMetric = Preference;
 
 namespace pref {
 
 // No, I want to do this at compile time, not runtime.
 // Brace yourselves
-#define DEFINE_AVG_DAILY_METRIC_PREF(name, preferenceXtype, extract)           \
+#define DEFINE_AVG_DAILY_METRIC_PREF(name, label, preferenceXtype, extract)    \
   struct name : public Preference {                                            \
     LinearInterpolator<preferenceXtype> const timePref;                        \
                                                                                \
@@ -70,13 +69,17 @@ namespace pref {
       }                                                                        \
       return count == 0 ? 0.5 : score_sum / count;                             \
     }                                                                          \
-  };
-
-DEFINE_AVG_DAILY_METRIC_PREF(CompactDays, double,
+                                                                               \
+    std::string const& Label() const override {                                \
+      static std::string const kLabel{label};                                  \
+      return kLabel;                                                           \
+    }                                                                          \
+};
+DEFINE_AVG_DAILY_METRIC_PREF(CompactDays, "Length of school days", double,
                              (blocks.back()->End() - blocks.front()->Start()) /
                                  60.0)
-DEFINE_AVG_DAILY_METRIC_PREF(EarliestTime, Time, blocks.front()->Start())
-DEFINE_AVG_DAILY_METRIC_PREF(LatestTime, Time, blocks.back()->End())
+DEFINE_AVG_DAILY_METRIC_PREF(EarliestTime, "Earliest class", Time, blocks.front()->Start())
+DEFINE_AVG_DAILY_METRIC_PREF(LatestTime, "Latest class", Time, blocks.back()->End())
 
 struct PreferredInstructors : public Preference {
   // invariant: sorted for binary search and all lowercase
@@ -119,6 +122,11 @@ struct PreferredInstructors : public Preference {
     return match_count / static_cast<double>(preferredIds.size());
   }
 
+  std::string const& Label() const override {
+    static std::string const kLabel = "Instructors";
+    return kLabel;
+  }
+
 private:
   static std::string to_lowercase(std::string const &str) {
     using namespace std;
@@ -152,6 +160,11 @@ struct TravelDistance : public AbsoluteMetric {
       dist += MetersBetween(loc, residence);
     }
     return dist;
+  }
+
+  std::string const& Label() const override {
+    static std::string const kLabel = "Weekly travel";
+    return kLabel;
   }
 };
 

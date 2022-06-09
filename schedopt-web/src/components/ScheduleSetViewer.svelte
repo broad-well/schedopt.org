@@ -1,17 +1,27 @@
 
 <div id="global-container">
     <aside>
-        <h1 style="margin: 0 0 8px 0">Schedule {scheduleIndex + 1} / {schedules.length}</h1>
-        <!-- <CurrentPlot dataset={schedules} x={s => s.metrics[0]} y="compositeScore" thisIndex={0} caption='Scatterplot of travel distance vs composite score' type='scatter' /> -->
-        <CurrentPlot dataset={schedules} x="compositeScore" thisIndex={scheduleIndex} caption='Composite preference score compared to other schedules' />
-        {#each preferenceFactors as prefLabel, i}
-            <CurrentPlot dataset={schedules} x={s => s.preferences[i]} thisIndex={scheduleIndex} caption={prefLabel + ' preference factor compared to other schedules'} />
-        {/each}
-        {#each metrics as metric, i}
-            <CurrentPlot dataset={schedules} x={s => s.metrics[i]} thisIndex={scheduleIndex} caption={metric + ' compared to other schedules'} />
-        {/each}
-        <button on:click={goToPrev}>&leftarrow; Previous</button>
-        <button on:click={goToNext}>Next &rightarrow;</button>
+        <section id="graphs">
+            <CanvasPlot series={schedules.map(s => s.compositeScore)} currentIndex={scheduleIndex} caption={'Composite preference score compared to other schedules'}/>
+            <!-- <CurrentPlot dataset={schedules} x={s => s.metrics[0]} y="compositeScore" thisIndex={0} caption='Scatterplot of travel distance vs composite score' type='scatter' /> -->
+            <!-- <CurrentPlot dataset={schedules} x="compositeScore" thisIndex={scheduleIndex} caption='Composite preference score compared to other schedules' /> -->
+            {#each preferenceFactors as prefLabel, i}
+                <CanvasPlot series={schedules.map(s => s.preferences[i])} currentIndex={scheduleIndex} caption={prefLabel + ' preference factor compared to other schedules'}/>
+            {/each}
+            {#each metrics as metric, i}
+                <CanvasPlot series={schedules.map(s => s.metrics[i])} currentIndex={scheduleIndex} caption={metric + ' compared to other schedules'} />
+            {/each}
+            <div class="big">
+                <CanvasPlot height={240} series={schedules} x={s => s.metrics[0]} y={s => s.compositeScore} type='scatterplot' currentIndex={scheduleIndex} caption='Scatterplot of weekly travel (x) vs. composite preference score (y)'/>
+            </div>
+        </section>
+        <div id="schedule-label">
+            <h1 style="margin: 0">Schedule {scheduleIndex + 1} / {schedules.length}</h1>
+            <span style="text-align:right;padding:0.25rem">
+                <button on:click={goToPrev}>&leftarrow; Previous</button>
+                <button on:click={goToNext}>Next &rightarrow;</button>
+            </span>
+        </div>
     </aside>
     <main>
         {#each kTimes as time, i}
@@ -28,7 +38,7 @@
                             {#if dayYes > 0}
                                 <div class="time-block"
                                     style="grid-row: {timeBlockRows(meeting.startTime, meeting.endTime)}; grid-column: {dayNum+2}; background-color: {kColorPalette[clusterIndex % kColorPalette.length]}">
-                                    <strong>{courseOrder[clusterIndex]}</strong> <br>
+                                    <strong>{courseOrder[clusterIndex]}</strong> {courseDb[courseOrder[clusterIndex]][section.toString()].sectionType}<br>
                                     Section {padZeros(section)} &centerdot; <code>{courseDb[courseOrder[clusterIndex]][section.toString()].classNumber}</code>
                                 </div>
                             {/if}
@@ -41,25 +51,31 @@
 </div>
 
 <style>
+    #schedule-label {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
     .time-block {
         border-radius: 6px;
         color: #fefefe;
         padding: 6px;
-        font-size: 14px;
+        font-size: calc(max(8px, min(16px, 0.92vw)));
         line-height: 0.9;
     }
     main {
         height: 100%;
         background-color: #efefef;
-        border-radius: 2rem;
+        border-radius: 1.5rem;
         box-sizing: border-box;
         gap: 2px;
         padding: 1rem;
         display: grid;
-        grid-template: 18px repeat(28, 1fr) / 64px repeat(5, 1fr);
+        grid-template: 16px repeat(28, 1fr) / 48px repeat(5, 1fr);
     }
     .time, .weekday-name {
         color: rgba(0, 0, 0, 0.7);
+        font-size: 14px;
     }
     .time {
         line-height: 90%;
@@ -75,31 +91,45 @@
         box-sizing: border-box;
         flex-direction: column;
     }
+    #graphs {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
     @media screen and (min-width: 900px) {
         #global-container {
             flex-direction: row;
         }
         aside {
-            flex-grow: 1;
-            flex-basis: 30%;
+            flex-basis: 40%;
         }
         main {
             flex-grow: 2;
-            flex-basis: 70%;
+            flex-basis: 60%;
+        }
+        #graphs {
+            grid-template-columns: 1fr 1fr;
+        }
+        #graphs .big {
+            grid-column: 1/3;
         }
     }
     aside {
-        margin: 12px;
+        margin: 8px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
     aside button {
-        background-color: #3b6710;
-        padding: 12px 30px;
+        background-color: #5a5a5a;
+        padding: 12px 24px;
         border: none;
         border-radius: 12px;
         color: white;
         cursor: pointer;
         box-shadow: 0 1px #969699;
         transition: all 0.1s ease;
+        margin: 4px;
     }
     aside button:hover {
         box-shadow: 0 2px #969699;
@@ -113,7 +143,7 @@
 
 <script>
 import { onMount } from "svelte";
-
+    import CanvasPlot from "./CanvasPlot.svelte";
     import CurrentPlot from "./CurrentPlot.svelte";
     const kColorPalette = ["rgb(91,88,143)", "rgb(66,134,33)", "rgb(106,39,134)", "rgb(115,123,85)", "rgb(42,43,240)", "rgb(169,104,28)", "rgb(215,37,163)", "rgb(36,128,161)"];
     const kTimes = ['7 AM', '8 AM', '9 AM', '10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM', '5 PM', '6 PM', '7 PM', '8 PM']

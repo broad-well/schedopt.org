@@ -126,6 +126,10 @@ TEST_SUITE("CompactDays") {
   }
 }
 
+TEST_SUITE("ClassGap") {
+  // cases: empty/degenerate, do not consider gaps from/to non-class blocks
+}
+
 TEST_SUITE("PreferredInstructors") {
   // proportion of preferred instructors found in schedule is the score
 
@@ -138,6 +142,11 @@ TEST_SUITE("PreferredInstructors") {
 
     CHECK_EQ(pi(empty), doctest::Approx(0));
     CHECK_EQ(pi(loaded), doctest::Approx(0));
+  }
+
+  TEST_CASE("PreferredInstructors' name is \"Instructors\"") {
+    pref::PreferredInstructors pi{};
+    CHECK_EQ(pi.Label(), "Instructors");
   }
 
   TEST_CASE("Loaded PreferredInstructors on empty schedule gives 0") {
@@ -185,6 +194,11 @@ TEST_SUITE("TravelDistance") {
     Schedule sched;
 
     CHECK_EQ(td(sched), doctest::Approx(0));
+  }
+
+  TEST_CASE("TravelDistance's name is \"Weekly travel\"") {
+    pref::TravelDistance td{loc_mojo};
+    CHECK_EQ(td.Label(), "Weekly travel");
   }
 
   TEST_CASE("TravelDistance on light schedule gives straight-line distance") {

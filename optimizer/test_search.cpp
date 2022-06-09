@@ -116,17 +116,17 @@ TEST_CASE("Search prunes by requirement and scores by preference") {
       {"STATS 250", {
           {{200, 204}, {200, 212}},
           {
-              {200, stats250_200},
+              {200, stats250_200}, // TuTh 10-11:30
               {204, stats250_204}, // violates requirement
-              {212, stats250_212}
+              {212, stats250_212}  // We 13-14:30
           }
       }},
       {"EECS 183", {
           {{1, 31}, {1, 39}},
           {
-              {1, eecs183_001},
+              {1, eecs183_001},  // TuTh 8:30-10
               {31, eecs183_031}, // violates requirement
-              {39, eecs183_039}
+              {39, eecs183_039}  // Friday 15-17
           }
       }}
   };
@@ -141,7 +141,17 @@ TEST_CASE("Search prunes by requirement and scores by preference") {
       {{15, 0}, 1.0},
       {{18, 0}, 0.2}
   };
+  LinearInterpolator<Time> latestInterp{
+      {{12, 0}, 1},
+      {{14, 30}, 0.95},
+      {{16, 0}, 0.9},
+      {{17, 0}, 0.7},
+      {{18, 0}, 0.5},
+      {{19, 0}, 0.2},
+      {{20, 0}, 0}
+  };
   search.prefs.emplace_back(new pref::EarliestTime(interp), 1);
+  search.prefs.emplace_back(new pref::LatestTime(latestInterp), 1);
   search.metrics.emplace_back(new CustomMetricNumSections());
   search.metrics.emplace_back(new CustomMetricDailyClassCount());
   auto results{search.FindAllSchedules()};
@@ -155,7 +165,9 @@ TEST_CASE("Search prunes by requirement and scores by preference") {
     CHECK_EQ(sched.metrics[0], doctest::Approx(4));
     cluster_selections.emplace(stack);
     CHECK_EQ(round(sched.metrics[1]), 212100);
-    CHECK_EQ(sched.pref_score, doctest::Approx((0.1 + 0.9 + 0.1 + 1.0) / 4.0));
+    CHECK_EQ(sched.prefs[0], doctest::Approx((0.1 + 0.9 + 0.1 + 1.0) / 4.0));
+    CHECK_EQ(sched.prefs[1], doctest::Approx((1.0 + 0.95 + 1.0 + 0.7) / 4.0));
+    CHECK_EQ(sched.pref_score, doctest::Approx(sched.prefs[0] + sched.prefs[1]));
   });
   CHECK_EQ(schedules.size(), 1);
   CHECK_EQ(cluster_selections, set<vector<uint32_t>>{{1, 1}});

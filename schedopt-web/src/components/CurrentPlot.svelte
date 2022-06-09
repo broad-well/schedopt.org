@@ -8,10 +8,10 @@
     }
     #hist-container {
         background-color: #efefef;
-        padding: 12px;
+        padding: 8px;
         border-radius: 8px;
-        margin-bottom: 12px;
-        font-size: 12px;
+        margin-bottom: 8px;
+        font-size: 14px;
     }
 </style>
 <script>
@@ -44,9 +44,6 @@
      * @type {"histogram"|"scatter"}
      */
     export let type = "histogram";
-
-
-    $: console.log(dataset);
 
     const kPlotConfig = {
         height: 140,
