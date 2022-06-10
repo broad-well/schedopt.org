@@ -304,3 +304,56 @@ TEST_SUITE("LoadDistribution") {
     CHECK_THROWS_WITH((pref::LoadDistribution{0, 0, 0, 0, 0, 0, 0, 0}), "Invalid number of load scores: 8");
   }
 }
+
+TEST_SUITE("PreferredSections") {
+  TEST_CASE("Empty set of PreferredSections gives 0") {
+    pref::PreferredSections ps{};
+    Schedule empty;
+    Schedule loaded;
+    loaded.AddSection(eecs183_001);
+
+    CHECK_EQ(ps(empty), doctest::Approx(0));
+    CHECK_EQ(ps(loaded), doctest::Approx(0));
+  }
+
+  TEST_CASE("Having no PreferredSections in schedule causes 0") {
+    pref::PreferredSections ps{&stats250_212};
+    Schedule loaded;
+    loaded.AddSection(stats250_200);
+    loaded.AddSection(stats250_204);
+
+    CHECK_EQ(ps(loaded), doctest::Approx(0));
+  }
+
+  TEST_CASE("Having all PreferredSections in schedule causes 1") {
+    pref::PreferredSections ps{&stats250_212, &eecs183_039};
+    Schedule loaded;
+    loaded.AddSection(stats250_200);
+    loaded.AddSection(stats250_212);
+    loaded.AddSection(eecs183_039);
+
+    CHECK_EQ(ps(loaded), doctest::Approx(1));
+  }
+
+  TEST_CASE("Having 2 of the 3 PreferredSections causes 0.666...") {
+    pref::PreferredSections ps{&eecs428_001, &eecs482_001, &stats250_200};
+    Schedule loaded;
+    loaded.AddSection(eecs428_001);
+    loaded.AddSection(eecs482_001);
+    loaded.AddSection(eecs183_001);
+    loaded.AddSection(eecs183_039);
+    CHECK_EQ(ps(loaded), doctest::Approx(2.0 / 3.0));
+  }
+
+  TEST_CASE("PreferredSections handles non-class blocks") {
+    pref::PreferredSections ps{&stats250_200, &eecs183_039};
+    Schedule loaded;
+    loaded.AddSection(stats250_200);
+    loaded.InsertBlocks(std::vector<TimeBlock>{
+      {{19, 0}, {21, 0}, 0b0000100}
+    });
+    loaded.AddSection(stats250_212);
+
+    CHECK_EQ(ps(loaded), doctest::Approx(1.0 / 2.0));
+  }
+}

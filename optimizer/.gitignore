@@ -1,3 +1,4 @@
 .idea/
 order-*
 *.csv
+vcpkg_installed/

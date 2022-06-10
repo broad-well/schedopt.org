@@ -138,6 +138,38 @@ private:
   }
 };
 
+struct PreferredSections : public Preference {
+  std::vector<ClassSection const*> preferred;
+
+  PreferredSections(std::initializer_list<ClassSection const*> list): preferred(list) {}
+
+  double operator()(Schedule const& sch) const override {
+    if (preferred.empty()) return 0.0;
+    using namespace std;
+    vector<bool> found(preferred.size(), false);
+    uint32_t count = 0;
+    for (uint8_t day = 0; day < kNumWeekdays; ++day) {
+      for (auto const block: sch.BlocksOnDay(day)) {
+        if (not block->IsClass()) continue;
+        auto prefIt = find(begin(preferred), end(preferred), &block->details->section);
+        if (prefIt != end(preferred)) {
+          auto index = distance(begin(preferred), prefIt);
+          if (not found[index]) {
+            ++count;
+            found[index] = true;
+          }
+        }
+      }
+    }
+    return static_cast<double>(count) / preferred.size();
+  }
+
+  std::string const& Label() const override {
+    static std::string label = "Sections";
+    return label;
+  }
+};
+
 struct TravelDistance : public AbsoluteMetric {
   LatLong residence;
 
@@ -171,7 +203,6 @@ struct TravelDistance : public AbsoluteMetric {
 class LoadDistribution : public Preference {
   std::vector<double> ideal_load;
 public:
-
   explicit LoadDistribution(std::initializer_list<double> loads): ideal_load(loads) {
     if (ideal_load.size() != kNumWeekdays - 2 and ideal_load.size() != kNumWeekdays) {
       throw std::invalid_argument("Invalid number of load scores: " + std::to_string(ideal_load.size()));
@@ -200,6 +231,11 @@ public:
       if (score < score_min) score_min = score;
     }
     return (score_min + score_sum / ideal_load.size()) / 2;
+  }
+
+  std::string const& Label() const override {
+    static const std::string label = "Workload distribution";
+    return label;
   }
 
 private:

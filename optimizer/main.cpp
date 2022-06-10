@@ -14,7 +14,7 @@ int main() {
         }
       }
     }
-    printf("in %s, %llu/%llu sections are bad\n", pair.first.c_str(), badSections.size(), pair.second.sections.size());
+    fprintf(stderr, "in %s, %zu/%zu sections are bad\n", pair.first.c_str(), badSections.size(), pair.second.sections.size());
     auto new_end = remove_if(begin(pair.second.clusters), end(pair.second.clusters), [&](auto const& cluster) {
       return any_of(begin(cluster), end(cluster), [&](auto it) { return badSections.find(it) != end(badSections); });
     });
@@ -22,7 +22,7 @@ int main() {
     for (auto section: badSections) {
       pair.second.sections.erase(section);
     }
-    printf("in %s, %zu clusters remain\n", pair.first.c_str(), pair.second.clusters.size());
+    fprintf(stderr, "in %s, %zu clusters remain\n", pair.first.c_str(), pair.second.clusters.size());
   }
   Search search(courses);
 
@@ -50,10 +50,14 @@ int main() {
         printf("%u", cluster[j]);
       }
     }
-    for (size_t i = 0; i < stats.prefs.Size(); ++i) {
+    for (uint32_t i = 0; i < stats.prefs.Size(); ++i) {
       printf(",%.3f", stats.prefs[i]);
     }
-    printf(",%.6f,%.2f\n", stats.pref_score, stats.metrics[0]);
+    printf(",%.6f", stats.pref_score);
+    for (uint32_t i = 0; i < stats.metrics.Size(); ++i) {
+      printf(",%.3f", stats.metrics[i]);
+    }
+    puts("");
   });
   fflush(stdout);
 }
