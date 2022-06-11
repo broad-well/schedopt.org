@@ -43,8 +43,9 @@ struct Preference {
   virtual std::string const& Label() const = 0;
 };
 
-// Same structure, just different name
-using AbsoluteMetric = Preference;
+struct AbsoluteMetric : public Preference {
+  virtual double ScaleToPreference(double min, double max, double current) const = 0;
+};
 
 namespace pref {
 
@@ -197,6 +198,13 @@ struct TravelDistance : public AbsoluteMetric {
   std::string const& Label() const override {
     static std::string const kLabel = "Weekly travel";
     return kLabel;
+  }
+
+  double ScaleToPreference(double min, double max, double current) const override {
+    double raw{1.0 - (current - min/2) / (max - min/2)};
+    if (raw > 1.0) return 1.0;
+    if (raw < 0) return 0.0;
+    return raw;
   }
 };
 

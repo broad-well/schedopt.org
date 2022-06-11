@@ -1,4 +1,4 @@
-#include "order-robot.hpp"
+#include "order-bnfangok.hpp"
 
 
 int main() {
@@ -38,7 +38,7 @@ int main() {
   }
   printf(",prefs::compositeScore");
   for (auto & metric : search.metrics) {
-    printf(",metric::%s", metric->Label().c_str());
+    printf(",metric::%s", metric.first->Label().c_str());
   }
   puts("");
   res.ForEachSchedule([&](ScheduleStats stats, auto const& stack) {
