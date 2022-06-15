@@ -18,6 +18,9 @@ find_package(Boost REQUIRED)
 set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -march=native -ffast-math")
 set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0 -fsanitize=address")
 
+add_executable(test_array "test_array.cpp")
+target_link_libraries(test_array PRIVATE doctest::doctest Boost::boost)
+
 add_executable(test_schedule "test_schedule.cpp")
 target_link_libraries(test_schedule PRIVATE doctest::doctest Boost::boost)
 
@@ -34,11 +37,12 @@ add_executable(test_search "test_search.cpp")
 target_link_libraries(test_search PRIVATE doctest::doctest Boost::boost)
 
 enable_testing()
+add_test(test_array test_array)
 add_test(test_schedule test_schedule)
 add_test(test_validators test_validators)
 add_test(test_requirements test_requirements)
 add_test(test_preferences test_preferences)
 add_test(test_search test_search)
 
-#add_executable(manual_order "main.cpp")
-#target_link_libraries(manual_order PRIVATE Boost::boost)
+# add_executable(manual_order "main.cpp")
+# target_link_libraries(manual_order PRIVATE Boost::boost)
