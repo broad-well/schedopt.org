@@ -11,11 +11,10 @@
         "dayjs": "^1.11.2"
     },
     "devDependencies": {
-        "jest": "^25.4.0",
-        "mocha": "^10.0.0"
+        "vitest": "^0.14.1"
     },
     "scripts": {
-        "mocha": "mocha __tests__/*.test.js",
-        "test": "exit 0"
+        "vitest": "vitest",
+        "test": "vitest run --dir test/"
     }
 }

@@ -1,14 +1,6 @@
 import assert from 'assert';
 import { marshalSection } from '../src/dynamo.js'
 
-// temporary
-import * as soc from '../src/socApi.js'
-async function s() {
-  const token = await soc.requestAccessToken();
-  console.log(JSON.stringify(await soc.fetchMeetings(token, 'FA22', ['STRATEGY', 672], '002'), null, 2));
-}
-s();
-
 describe('marshalling and unmarshalling sections for DynamoDB', () => {
   describe('marshalSection', () => {
     it('should marshal single-meeting section correctly', () => {

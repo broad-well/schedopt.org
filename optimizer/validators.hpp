@@ -2,6 +2,16 @@
 
 #include "schedule.hpp"
 
+template<typename T>
+inline bool travel_intensive(T const &b1, T const& b2) {
+  return MetersBetween(b1, b2) > 1000;
+}
+
+inline bool travel_practical_from_to(TimeBlock const &b1, TimeBlock const &b2) {
+  auto interval = b2.Start() - b1.End();
+  return not travel_intensive(b1, b2) or interval > 10;
+}
+
 class Validator {
 public:
   // True iff valid
@@ -21,6 +31,8 @@ public:
     newSched.AddSection(sect);
     return (*this)(newSched);
   }
+
+  virtual ~Validator() = default;
 };
 
 namespace valid {
@@ -52,9 +64,10 @@ public:
         if (days & 1) {
           auto const &blocksOnDay =
               sched.BlocksOnDay(static_cast<std::uint8_t>(d));
-          auto insPos = lower_bound(
-              begin(blocksOnDay), end(blocksOnDay), &blk,
-              [](auto const a, auto const b) { return a->Start() < b->Start(); });
+          auto insPos = lower_bound(begin(blocksOnDay), end(blocksOnDay), &blk,
+                                    [](auto const a, auto const b) {
+                                      return a->Start() < b->Start();
+                                    });
           if (insPos != begin(blocksOnDay)) {
             auto prevBlock = insPos;
             --prevBlock;
@@ -71,6 +84,7 @@ public:
     return true;
   }
 };
+
 
 class TravelPractical : public Validator {
 public:
@@ -100,9 +114,10 @@ public:
         if (days & 1) {
           auto const &blocksOnDay =
               sched.BlocksOnDay(static_cast<std::uint8_t>(d));
-          auto insPos = lower_bound(
-              begin(blocksOnDay), end(blocksOnDay), &blk,
-              [](auto const a, auto const b) { return a->Start() < b->Start(); });
+          auto insPos = lower_bound(begin(blocksOnDay), end(blocksOnDay), &blk,
+                                    [](auto const a, auto const b) {
+                                      return a->Start() < b->Start();
+                                    });
           if (insPos != begin(blocksOnDay)) {
             auto prevBlock = insPos;
             --prevBlock;
@@ -117,14 +132,6 @@ public:
       }
     }
     return true;
-  }
-
-private:
-  static inline bool travel_practical_from_to(TimeBlock const &b1,
-                                              TimeBlock const &b2) {
-    double dist = MetersBetween(b1, b2);
-    auto interval = b1.Start() - b2.End();
-    return dist <= 1000 || interval > 10;
   }
 };
 } // namespace valid
