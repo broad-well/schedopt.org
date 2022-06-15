@@ -1,6 +1,13 @@
 
 <div id="global-container">
     <aside>
+        <div id="schedule-label">
+            <h1 style="margin: 0">Schedule <input style="font-size:large;max-width:100px;" type="number" min="1" max={schedules.length} bind:value={scheduleIndexIn}> / {schedules.length}</h1>
+            <span style="text-align:right;padding:0.25rem">
+                <button on:click={goToPrev}>&leftarrow; Previous</button>
+                <button on:click={goToNext}>Next &rightarrow;</button>
+            </span>
+        </div>
         <section id="graphs">
             <CanvasPlot height={denseGraphs ? 80 : 100} series={schedules.map(s => s.compositeScore)} currentIndex={scheduleIndex}>
                 Composite preference score
@@ -21,7 +28,9 @@
                 {#key {scatterX, scatterY}}
                 <CanvasPlot height={(denseGraphs ? 180 : 240)} series={schedules}
                         x={s => JSON.parse(scatterX).reduce((obj, key) => obj[key], s)}
-                        y={s => JSON.parse(scatterY).reduce((obj, key) => obj[key], s)} type='scatterplot'
+                        y={s => JSON.parse(scatterY).reduce((obj, key) => obj[key], s)}
+                        color={s => s.courseOrderIndex}
+                        type='scatterplot'
                         currentIndex={scheduleIndex}>
                     Scatterplot of <select bind:value={scatterY}>
                         <option value={JSON.stringify(['compositeScore'])}>Composite preference</option>
@@ -44,13 +53,7 @@
                 {/key}
             </div>
         </section>
-        <div id="schedule-label">
-            <h1 style="margin: 0">Schedule {scheduleIndex + 1} / {schedules.length}</h1>
-            <span style="text-align:right;padding:0.25rem">
-                <button on:click={goToPrev}>&leftarrow; Previous</button>
-                <button on:click={goToNext}>Next &rightarrow;</button>
-            </span>
-        </div>
+        
     </aside>
     <main>
         {#each kTimes as time, i}
@@ -62,16 +65,18 @@
         {#if schedule != undefined}
             {#each schedule.clusters as sections, clusterIndex}
                 {#each sections as section}
-                    {#each courseDb[courseOrder[clusterIndex]][section].meetings as meeting}
-                        {#each meeting.days as dayYes, dayNum}
-                            {#if dayYes > 0}
-                                <div class="time-block"
-                                    style="grid-row: {timeBlockRows(meeting.startTime, meeting.endTime)}; grid-column: {dayNum+2}; background-color: {kColorPalette[clusterIndex % kColorPalette.length]}">
-                                    <strong>{courseOrder[clusterIndex]}</strong> {courseDb[courseOrder[clusterIndex]][section.toString()].sectionType}<br>
-                                    Section {padZeros(section)} &centerdot; <code>{courseDb[courseOrder[clusterIndex]][section.toString()].classNumber}</code>
-                                </div>
-                            {/if}
-                        {/each}
+                    {#each courseDb[schedule.courseOrder[clusterIndex]][section].meetings as meeting}
+                        {#if meeting != null && meeting.days != null}
+                            {#each meeting.days as dayYes, dayNum}
+                                {#if dayYes > 0}
+                                    <div class="time-block"
+                                        style="grid-row: {timeBlockRows(meeting.startTime, meeting.endTime)}; grid-column: {dayNum+2}; background-color: {kColorPalette[clusterIndex % kColorPalette.length]}">
+                                        <strong>{schedule.courseOrder[clusterIndex]}</strong> {courseDb[schedule.courseOrder[clusterIndex]][section.toString()].sectionType}<br>
+                                        Section {padZeros(section)} &centerdot; <code>{courseDb[schedule.courseOrder[clusterIndex]][section.toString()].classNumber}</code>
+                                    </div>
+                                {/if}
+                            {/each}
+                        {/if}
                     {/each}
                 {/each}
             {/each}
@@ -171,32 +176,25 @@
 </style>
 
 <script>
-import { onMount } from "svelte";
+    import { onMount } from "svelte";
+    import { kColorPalette } from "../utils.js";
     import CanvasPlot from "./CanvasPlot.svelte";
-    const kColorPalette = ["rgb(91,88,143)", "rgb(66,134,33)", "rgb(106,39,134)", "rgb(115,123,85)", "rgb(42,43,240)", "rgb(169,104,28)", "rgb(215,37,163)", "rgb(36,128,161)"];
     const kTimes = ['7 AM', '8 AM', '9 AM', '10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM', '5 PM', '6 PM', '7 PM', '8 PM']
     const kWeekdayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
 
     // {'EECS 280': {'1': {sectionDetails...}}, ...}
     export let courseDb;
-    // ['EECS 280', 'EECS 203', ...]
-    export let courseOrder;
     // ['Earliest time', 'Latest time']
     export let preferenceFactors;
     // ['Travel distance']
     export let metrics;
-    // {clusters: [[5, 20], [3, 14], ...], compositeScore: <composite score>, preferences: [1, 0, 0.5, ...], metrics: [24003]}
+    // {clusters: [[5, 20], [3, 14], ...], compositeScore: <composite score>, preferences: [1, 0, 0.5, ...], metrics: [24003], courseOrder: ...}
     export let schedules = [];
 
-    let scheduleIndex = 0;
+    let scheduleIndexIn = 1;
+    $: scheduleIndex = scheduleIndexIn - 1;
 
     let scatterX = JSON.stringify(['metrics', 0]), scatterY = JSON.stringify(['compositeScore']);
-    function captionScatter(path) {
-        if (path[0] === 'compositeScore') return 'composite preference score';
-        else if (path[0] === 'metrics') return metrics[path[1]];
-        else if (path[0] === 'preferences') return preferenceFactors[path[1]];
-    }
-
     $: denseGraphs = metrics.length + preferenceFactors.length > 3;
     $: schedule = schedules[scheduleIndex];
 
@@ -210,8 +208,8 @@ import { onMount } from "svelte";
         return `${startIndex}/${endIndex}`;
     }
 
-    const goToNext = () => scheduleIndex = (scheduleIndex + 1) % schedules.length;
-    const goToPrev = () => scheduleIndex = scheduleIndex === 0 ? (schedules.length - 1) : (scheduleIndex - 1);
+    const goToNext = () => scheduleIndexIn = scheduleIndexIn >= schedules.length ? 1 : scheduleIndexIn + 1;
+    const goToPrev = () => scheduleIndexIn = scheduleIndexIn <= 1 ? (schedules.length) : (scheduleIndexIn - 1);
 
     onMount(() => {
         window.addEventListener('keydown', ev => {

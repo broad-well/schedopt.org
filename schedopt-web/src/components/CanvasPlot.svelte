@@ -17,7 +17,8 @@
     }
 </style>
 <script>
-import { onMount } from "svelte";
+    import { onMount } from "svelte";
+    import { kColorPalette } from "../utils.js";
 
     export let style;
     export let rectFill = 'rgba(100,100,100,0.5)';
@@ -30,19 +31,21 @@ import { onMount } from "svelte";
      */
     export let type = 'histogram';
     export let currentIndex;
-    export let x, y; // only for scatterplot: extractors
+    export let x, y, color; // only for scatterplot: extractors
+    // cache
     let barImage = null;
+    let graph = null;
     let canvas;
 
     const bottomMargin = 16;
     const horizMargin = 18;
 
-    function makeGraph(width, height, series, x, y) {
+    function makeGraph(width, height, series, x, y, color) {
         const obj = {
             histogram: Histogram,
             scatterplot: Scatterplot
         };
-        return new (obj[type])(width, height, series, x, y);
+        return new (obj[type])(width, height, series, x, y, color);
     }
 
     function populate(elem) {
@@ -57,8 +60,8 @@ import { onMount } from "svelte";
         elem.height = height * dpr;
         ctx.scale(dpr, dpr);
         
-        const graph = makeGraph(width, height, series, x, y);
-        if (barImage === null || barImage.width !== width || barImage.height !== height) {
+        if (graph === null || barImage === null || barImage.width !== width || barImage.height !== height) {
+            graph = makeGraph(width, height, series, x, y, color);
             graph.drawGraph(ctx, width, height);
             barImage = {data: ctx.getImageData(0, 0, width*dpr, height*dpr), width, height};
         } else {
@@ -110,7 +113,7 @@ import { onMount } from "svelte";
         }
 
         highlightCurrent(ctx, width, height, currentIndex) {
-            if (this.insufficient) {
+            if (this.insufficient && series[currentIndex] != undefined) {
                 ctx.fillStyle = '#555555';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
@@ -124,14 +127,16 @@ import { onMount } from "svelte";
         }
     }
 
+    const kScatterColorPalette = ['rgb(100,100,100)', ...kColorPalette];
     class Scatterplot {
-        constructor(width, height, series, x, y) {
+        constructor(width, height, series, x, y, color) {
             this.bottomMargin = 18;
             this.rightMargin = 16;
             this.topMargin = 12;
             this.leftMargin = 36;
             this.xs = series.map(x);
             this.ys = series.map(y);
+            this.colors = series.map(color);
             const {min: xmin, max: xmax} = minmax(this.xs);
             const {min: ymin, max: ymax} = minmax(this.ys);
             this.ymin = ymin;
@@ -141,6 +146,9 @@ import { onMount } from "svelte";
             this.projectX = x => (x - xmin) / (xmax - xmin) * (width - this.leftMargin - this.rightMargin) + this.leftMargin;
             this.projectY = y => height - this.bottomMargin - ((y - ymin) / (ymax - ymin) * (height - bottomMargin - this.topMargin));
             this.insufficient = series.length < 4 || minMaxTooClose(xmin, xmax) || minMaxTooClose(ymin, ymax);
+            
+            const alpha = series.length < 250 ? 0.6 : 0.3;
+            this.colorPalette = kScatterColorPalette.map(s => s.replace('rgb', 'rgba').replace(')', `,${alpha})`));
         }
 
         drawGraph(ctx, width, height) {
@@ -148,9 +156,9 @@ import { onMount } from "svelte";
                 drawInsufficientData(ctx, width, height);
                 return;
             }
-            ctx.fillStyle = 'rgba(100,100,100,0.3)';
             for (let i = 0; i < series.length; ++i) {
                 const x = this.projectX(this.xs[i]), y = this.projectY(this.ys[i]);
+                ctx.fillStyle = this.colorPalette[this.colors[i] % this.colorPalette.length];
                 ctx.fillRect(x-1.25, y-1.25, 2.5, 2.5);
             }
             drawHorizTicks(ctx, this.leftMargin, width - this.rightMargin, height - this.bottomMargin, this.xmin, this.xmax);
@@ -158,7 +166,7 @@ import { onMount } from "svelte";
         }
 
         highlightCurrent(ctx, width, height, index) {
-            if (this.insufficient) {
+            if (this.insufficient && this.xs[index] != undefined) {
                 ctx.fillStyle = '#555555';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
@@ -166,7 +174,7 @@ import { onMount } from "svelte";
                 ctx.fillText(`(${expressNumber(this.xs[index])}, ${expressNumber(this.ys[index])})`, width/2, height/2 + 16);
                 return;
             }
-            ctx.fillStyle = highlightColor;
+            ctx.fillStyle = this.colors[index] === 0 ? 'black' : kScatterColorPalette[this.colors[index]];
             const x = this.projectX(this.xs[index]);
             const y = this.projectY(this.ys[index]);
             ctx.fillRect(x - 3, y - 3, 6, 6);
@@ -212,7 +220,7 @@ import { onMount } from "svelte";
     }
 
     function minMaxTooClose(min, max) {
-        return (max - min) < ((min + max) / 2) * 0.001;
+        return (max - min) <= ((min + max) / 2) * 0.001;
     }
 
     // /**

@@ -11,29 +11,31 @@
         const [dbRes, combsRes] = (await Promise.all([fetch(dbJson), fetch(combsCsv)]));
         const db = await dbRes.json();
         const combs = await combsRes.text();
-        const cRows = combs.split('\n').slice(0, -1);
-        const headerRow = cRows[0].split(',');
-        const courseOrder = headerRow.filter(it => !it.includes('::'));
-        const prefIndexes = headerRow.map((s, i) => [s, i]).filter(it => it[0].startsWith('pref::')).map(it => [it[0].substring(6), it[1]]);
-        const metricIndexes = headerRow.map((s, i) => [s, i]).filter(it => it[0].startsWith('metric::')).map(it => [it[0].substring(8), it[1]]);
-        const compositeIndex = headerRow.indexOf('prefs::compositeScore');
-        const sections = cRows.slice(1).map(comb => {
-            const tokens = comb.split(',');
-            const clusters = tokens.slice(0, courseOrder.length).map(s => s.split(':').map(i => parseInt(i)));
-            const compositeScore = tokens[compositeIndex];
-            const metrics = metricIndexes.map(s => Number(tokens[s[1]]));
-            const prefFactors = prefIndexes.map(s => Number(tokens[s[1]]));
-            return {clusters, compositeScore: Number(compositeScore), metrics, preferences: prefFactors};
+        // multiple course-combination support. 2 empty lines to designate the boundary between two course combinations
+        const courseCombs = combs.split('\n\n\n');
+        const sections = courseCombs.flatMap((combs, i) => {
+            const cRows = combs.split('\n').filter(i => i.length > 0);
+            const headerRow = cRows[0].split(',');
+            const courseOrder = headerRow.filter(it => !it.includes('::'));
+            const prefIndexes = headerRow.map((s, i) => [s, i]).filter(it => it[0].startsWith('pref::')).map(it => [it[0].substring(6), it[1]]);
+            const metricIndexes = headerRow.map((s, i) => [s, i]).filter(it => it[0].startsWith('metric::')).map(it => [it[0].substring(8), it[1]]);
+            const compositeIndex = headerRow.indexOf('prefs::compositeScore');
+            return cRows.slice(1).map(comb => {
+                const tokens = comb.split(',');
+                const clusters = tokens.slice(0, courseOrder.length).map(s => s.split(':').map(i => parseInt(i)));
+                const compositeScore = tokens[compositeIndex];
+                const metrics = metricIndexes.map(s => Number(tokens[s[1]]));
+                const prefFactors = prefIndexes.map(s => Number(tokens[s[1]]));
+                return {clusters, compositeScore: Number(compositeScore), metrics, preferences: prefFactors, courseOrder, courseOrderIndex: i};
+            });
         });
+        const firstRowTokens = combs.substring(0, combs.indexOf('\n')).split(',');
         return {
             courseDb: db,
-            courseOrder,
-            preferenceFactors: prefIndexes.map(s => s[0]),
-            metrics: metricIndexes.map(s => s[0]),
+            preferenceFactors: firstRowTokens.filter(it => it.startsWith('pref::')).map(s => s.substring(6)),
+            metrics: firstRowTokens.filter(it => it.startsWith('metric::')).map(s => s.substring(8)),
             schedules: sections.sort((a, b) => {
-                const scoreDiff = b.compositeScore - a.compositeScore;
-                if (scoreDiff !== 0) return scoreDiff;
-                return a.metrics[0] - b.metrics[0];
+                return b.compositeScore - a.compositeScore;
             })
         };
     }
@@ -46,10 +48,13 @@
 </svelte:head>
 
 {#await loadScheduleSet()}
- {""}
+  <div style="margin: 2rem">
+      <h1>Loading your schedules...</h1>
+  </div>
 {:then params}
     <ScheduleSetViewer {...params} />
 {:catch err}
+    {err}
     {(() => { alert("I haven't generated your schedule options. Please tell me your desired courses and scheduling preferences via form.schedopt.org."); return ''; })()}
 {/await}
 
