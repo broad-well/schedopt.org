@@ -293,4 +293,38 @@ TEST_CASE("Search collects min and max of metrics correctly") {
     CHECK_EQ(stats.pref_score, doctest::Approx(0.3 * expected_scores.at({stack[0], stack[1]})));
   });
 }
+
+TEST_CASE("Search of a subset of all courses results in schedules containing exactly that subset") {
+  using namespace std;
+
+  unordered_map<string, CourseDetails> courses {
+      {"STATS 250", {
+          {{200, 204}, {200, 212}},
+          {
+              {200, stats250_200}, // TuTh 10-11:30
+              {204, stats250_204}, // Tu 13-16
+              {212, stats250_212}  // We 13-14:30
+          }
+      }},
+      {"EECS 183", {
+          {{1, 31}, {1, 39}},
+          {
+              {1, eecs183_001},  // TuTh 8:30-10
+              {31, eecs183_031}, // Fri 14-16
+              {39, eecs183_039}  // Fri 15-17
+          }
+      }}
+  };
+  Search search(courses);
+  search.metrics.emplace_back(new CustomMetricDailyClassCount, 0.3);
+  
+  vector<string> course_combo{"EECS 183"};
+  uint16_t schedule_count = 0;
+  auto results = search.FindAllSchedules(course_combo);
+  results.ForEachSchedule([&](auto const& stats, auto const& stack) {
+    CHECK_EQ(stats.metrics[0], 101100);
+    ++schedule_count;
+  });
+  CHECK_EQ(schedule_count, 2);
+}
 }

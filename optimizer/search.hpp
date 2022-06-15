@@ -67,22 +67,37 @@ struct Search {
   std::vector<std::pair<std::unique_ptr<Preference>, double>> prefs;
   std::vector<std::pair<std::unique_ptr<AbsoluteMetric>, double>> metrics;
   // strategy for scaling metrics to preferences:
-  // collect min/max during search. in FindAllSchedules, do search and then additional rating. pass min, max, and each schedule's value
-  // for that metric to its scaler, if exists and weight above 1e-10.
+  // collect min/max during search. in FindAllSchedules, do search and then
+  // additional rating. pass min, max, and each schedule's value for that metric
+  // to its scaler, if exists and weight above 1e-10.
 
   Search(decltype(courses) courses) : courses(courses) {}
 
+  inline SearchResults FindAllSchedules() {
+    using namespace std;
+    vector<string> course_combo;
+    course_combo.reserve(courses.size());
+    for (auto const& [id, _]: courses) {
+      course_combo.emplace_back(id);
+    }
+    return FindAllSchedules(course_combo);
+  }
+
   // Conducts a complete search (with backtracking) to find all schedule
   // enrollments
-  SearchResults FindAllSchedules() {
-    metric_max_min.resize(metrics.size(), {std::numeric_limits<double>::min(), std::numeric_limits<double>::max()});
-    course_order = CourseOrderByIncreasingClusterCount();
-    partials.resize(courses.size());
+  SearchResults FindAllSchedules(std::vector<std::string> const& course_combo) {
+    metric_max_min.resize(metrics.size(), {std::numeric_limits<double>::min(),
+                                           std::numeric_limits<double>::max()});
+    PopulateCourseOrderByIncreasingClusterCount(course_combo);
+    partials.resize(course_combo.size());
     SearchResults results{course_order, RunSearch(0u)};
-    results.ForEachSchedule([this](ScheduleStats& stats, auto const& stack) {
+    results.ForEachSchedule([this](ScheduleStats &stats, auto const &stack) {
       for (std::size_t i = 0; i < metrics.size(); ++i) {
         if (metrics[i].second > 1e-10) {
-          stats.pref_score += metrics[i].first->ScaleToPreference(metric_max_min[i].second, metric_max_min[i].first, stats.metrics[i]) * metrics[i].second;
+          stats.pref_score += metrics[i].first->ScaleToPreference(
+                                  metric_max_min[i].second,
+                                  metric_max_min[i].first, stats.metrics[i]) *
+                              metrics[i].second;
         }
       }
     });
@@ -98,20 +113,18 @@ private:
   valid::NoTimeConflicts valid_conflicts;
   valid::TravelPractical valid_travel;
 
-  std::vector<std::string> CourseOrderByIncreasingClusterCount() const {
+  void PopulateCourseOrderByIncreasingClusterCount(std::vector<std::string> const& course_combo) {
     using namespace std;
-    vector<string> out;
-    out.reserve(courses.size());
-    for (auto const &pair : courses) {
-      auto ins = lower_bound(begin(out), end(out), pair.first,
+    course_order.clear();
+    course_order.reserve(course_combo.size());
+    for (auto const &id : course_combo) {
+      auto ins = lower_bound(begin(course_order), end(course_order), id,
                              [this](auto const &a, auto const &b) {
                                return courses.at(a).clusters.size() <
-                                   courses.at(b).clusters.size();
+                                      courses.at(b).clusters.size();
                              });
-      out.insert(ins, pair.first);
+      course_order.insert(ins, id);
     }
-    assert(out.size() == courses.size());
-    return out;
   }
 
   ClusterNode RunSearch(std::size_t depth) {
@@ -167,21 +180,23 @@ private:
       pref_scores[i] = (*prefs[i].first)(sched);
       score += pref_scores[i] * prefs[i].second;
     }
-    ScheduleStats stats{score,
-                        std::move(pref_scores),
-                        Array<double>(static_cast<std::uint32_t>(metrics.size()))};
+    ScheduleStats stats{
+        score, std::move(pref_scores),
+        Array<double>(static_cast<std::uint32_t>(metrics.size()))};
     for (std::uint32_t i = 0; i < metrics.size(); ++i) {
       stats.metrics[i] = (*metrics[i].first)(sched);
     }
     return stats;
   }
 
-  void RecordMetricsMaxMin(ScheduleStats const& stats) {
+  void RecordMetricsMaxMin(ScheduleStats const &stats) {
     for (std::size_t i = 0; i < metrics.size(); ++i) {
-      auto& existing = metric_max_min[i];
+      auto &existing = metric_max_min[i];
       auto candidate = stats.metrics[i];
-      if (candidate > existing.first) existing.first = candidate;
-      if (candidate < existing.second) existing.second = candidate;
+      if (candidate > existing.first)
+        existing.first = candidate;
+      if (candidate < existing.second)
+        existing.second = candidate;
     }
   }
 };
